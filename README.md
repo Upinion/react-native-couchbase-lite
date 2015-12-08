@@ -1,14 +1,14 @@
-# react-native-linking-android
-React native linking android gives you a general interface to interact with outgoing app links.
+# react-native-couchbase
+React native Couchbase allows to create a couchbase server.
 
 ### Installation
 
 ```bash
-npm install --save react-native-linking-android
+npm install --save react-native-couchbase
 
 or manually
 
-git clone the directory to [node_modules/react-native-linking-android]
+git clone the directory to [node_modules/react-native-couchbase]
 ```
 
 ### Add it to your android project
@@ -17,8 +17,8 @@ git clone the directory to [node_modules/react-native-linking-android]
 
 ```gradle
 ...
-include ':LinkingAndroid', ':app'
-project(':LinkingAndroid').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-linking-android')
+include ':CouchBase', ':app'
+project(':CouchBase').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-couchbase')
 ```
 
 * In `android/app/build.gradle`
@@ -27,14 +27,14 @@ project(':LinkingAndroid').projectDir = new File(rootProject.projectDir, '../nod
 ...
 dependencies {
     ...
-    compile project(':LinkingAndroid')
+    compile project(':CouchBase')
 }
 ```
 
 * register module (in MainActivity.java)
 
 ```java
-import com.upinion.LinkingAndroid.LinkingAndroidPackage;  // <--- import
+import com.upinion.CouchBase.CouchBasePackage;  // <--- import
 
 public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
   ......
@@ -49,7 +49,7 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
       .setBundleAssetName("index.android.bundle")
       .setJSMainModuleName("index.android")
       .addPackage(new MainReactPackage())
-      .addPackage(new LinkingAndroidPackage())              // <------ add here
+      .addPackage(new CouchBasePackage())              // <------ add here
       .setUseDeveloperSupport(BuildConfig.DEBUG)
       .setInitialLifecycleState(LifecycleState.RESUMED)
       .build();
@@ -62,15 +62,3 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
 
 ## Example
 
-LinkingAndroid.show(uri)
-
-* **uri:** *(string)* url to be opened by the Android phone, 
-for example: [http://domain.com] or [mailto:info@domain.com].
-
-Example:
-
-```javascript
-var LinkingAndroid = require('react-native-linking-android');
-
-LinkingAndroid.show('mailto:info@domain.com');
-```
