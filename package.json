@@ -1,6 +1,6 @@
 {
   "name": "react-native-couchbase",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "React native Couchbase allows to start a couchbase server and sync.",
   "main": "index.js",
   "scripts": {
