@@ -91,7 +91,6 @@ DeviceEventEmitter.addListener(CouchBase.PUSH, (event) => {
  * @param  listen_port      Integer     port to start server
  * @param  userLocal        String      user for local server
  * @param  passwordLocal    String      password for local server
- * @param  databaseLocal    String      database for local server
  * @param  onEnd            Callback    function to call when finish (recieve port being used: function(int))
  */
 CouchBase.serverLocal(Integer listen_port, String userLocal, String passwordLocal, Callback onEnd)
