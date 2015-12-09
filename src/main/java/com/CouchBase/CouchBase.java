@@ -18,6 +18,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
+import com.couchbase.lite.DocumentChange;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.listener.LiteListener;
@@ -43,6 +44,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
     private static final String PUSH_EVENT_KEY = "couchBasePushEvent";
     private static final String PULL_EVENT_KEY = "couchBasePullEvent";
+    private static final String DB_EVENT_KEY = "couchBaseDBEvent";
 
     /**
      * Constructor for the Native Module
@@ -69,6 +71,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("PUSH", PUSH_EVENT_KEY);
         constants.put("PULL", PULL_EVENT_KEY);
+        constants.put("DBChanged", DB_EVENT_KEY);
         return constants;
     }
     /**
@@ -135,6 +138,17 @@ public class CouchBase extends ReactContextBaseJavaModule {
                         sendEvent(context, PULL_EVENT_KEY, Arguments.createMap());
                     }
                 });
+                db.addChangeListener(new Database.ChangeListener() {
+                    @Override
+                    public void changed(Database.ChangeEvent event) {
+                        for (DocumentChange dc : event.getChanges()) {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getName());
+                            eventM.putString("id", dc.getDocumentId());
+                            sendEvent(context, DB_EVENT_KEY, eventM);
+                        }
+                    }
+                });
             }
 
             push.start();
@@ -194,6 +208,17 @@ public class CouchBase extends ReactContextBaseJavaModule {
                         WritableMap eventM = Arguments.createMap();
                         eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
                         sendEvent(context, PULL_EVENT_KEY, eventM);
+                    }
+                });
+                db.addChangeListener(new Database.ChangeListener() {
+                    @Override
+                    public void changed(Database.ChangeEvent event) {
+                        for (DocumentChange dc : event.getChanges()) {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getName());
+                            eventM.putString("id", dc.getDocumentId());
+                            sendEvent(context, DB_EVENT_KEY, eventM);
+                        }
                     }
                 });
             }
