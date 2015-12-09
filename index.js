@@ -1,8 +1,8 @@
 /*
- *  Native Module to start couchbase
+ *  Native Module to start couchbase lite
  */
 'use strict'
 
 var { NativeModules } = require('react-native');
 
-module.exports = NativeModules.CouchBaseLite;
+module.exports = NativeModules.CouchBase;
