@@ -183,13 +183,17 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 push.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        sendEvent(context, PUSH_EVENT_KEY, Arguments.createMap());
+                        WritableMap eventM = Arguments.createMap();
+                        eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                        sendEvent(context, PUSH_EVENT_KEY, eventM);
                     }
                 });
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        sendEvent(context, PULL_EVENT_KEY, Arguments.createMap());
+                        WritableMap eventM = Arguments.createMap();
+                        eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                        sendEvent(context, PULL_EVENT_KEY, eventM);
                     }
                 });
             }
