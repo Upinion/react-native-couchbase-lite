@@ -74,12 +74,23 @@ DeviceEventEmitter.addListener(CouchBase.PULL ...
 DeviceEventEmitter.addListener(CouchBase.PUSH ...
 ```
 
+* DB Changed Event
+```bash
+DeviceEventEmitter.addListener(CouchBase.DBChanged ...
+```
+* Event attributes
+```bash
+event.databaseName  (String)    //Database related to event
+event.id            (String)    //ID of the document changed (only in DB Changed Event)
+```
+
 * Example of use
 ```java
-DeviceEventEmitter.addListener(CouchBase.PUSH, (event) => {
+DeviceEventEmitter.addListener(CouchBase.DBChanged, (event) => {
     if (event.databaseName == 'your database')
-        do something related to push event on that database
-    }
+        //do something related to document changed event on that database
+        console.log(event.id);
+    });
 ```
 
 ## Functions
