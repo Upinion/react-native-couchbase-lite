@@ -82,7 +82,7 @@ if (event == CouchBase.PULL)
 
 ## Functions
 
-# Create local couchbase
+### Create local couchbase
 ```java
  /** 
  * starts a local couchbase server
@@ -95,7 +95,7 @@ if (event == CouchBase.PULL)
 CouchBase.serverLocal(Integer listen_port, String userLocal, String passwordLocal, Callback onEnd)
 ```
 
-# Create local couchbase and syncing with remote
+### Create local couchbase and syncing with remote
 ```java 
 /**
  * starts a local couchbase server and syncs with remote
@@ -114,7 +114,7 @@ CouchBase.serverLocalRemote(Integer listen_port, String userLocal, String passwo
                                 Callback onEnd)
 ```
 
-# Create syncing with already created local database
+### Create syncing with already created local database
 ```java
 /**
  * starts syncing between, already created, local db and remote
