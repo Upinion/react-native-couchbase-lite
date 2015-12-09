@@ -66,18 +66,20 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
 
 * Pull Event
 ```bash
-CouchBase.PULL
+DeviceEventEmitter.addListener(CouchBase.PULL ...
 ```
 
 * Push Event
 ```bash
-CouchBase.PUSH
+DeviceEventEmitter.addListener(CouchBase.PUSH ...
 ```
 
-* Example
+* Example of use
 ```java
-if (event == CouchBase.PULL)
-    do something related to push event
+DeviceEventEmitter.addListener(CouchBase.PUSH, (event) => {
+    if (event.databaseName == 'your database')
+        do something related to push event on that database
+    }
 ```
 
 ## Functions
