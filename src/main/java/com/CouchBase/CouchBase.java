@@ -198,7 +198,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
             pull.start();
 
             if (onEnd != null)
-                onEnd.invoke(this.listenPort);
+                onEnd.invoke();
         }catch(Exception e){
             throw new JavascriptException(e.getMessage());
         }
