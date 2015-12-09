@@ -60,5 +60,71 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
 }
 ```
 
-## Example
+## Constants
 
+* Using `DeviceEventEmitter`
+
+* Pull Event
+```bash
+CouchBase.PULL
+```
+
+* Push Event
+```bash
+CouchBase.PUSH
+```
+
+* Example
+```java
+if (event == CouchBase.PULL)
+    do something related to push event
+```
+
+## Functions
+
+# Create local couchbase
+```java
+ /** 
+ * starts a local couchbase server
+ * @param  listen_port      Integer     port to start server
+ * @param  userLocal        String      user for local server
+ * @param  passwordLocal    String      password for local server
+ * @param  databaseLocal    String      database for local server
+ * @param  onEnd            Callback    function to call when finish (recieve port being used: function(int))
+ */
+CouchBase.serverLocal(Integer listen_port, String userLocal, String passwordLocal, Callback onEnd)
+```
+
+# Create local couchbase and syncing with remote
+```java 
+/**
+ * starts a local couchbase server and syncs with remote
+ * @param  listen_port      Integer     port to start server
+ * @param  userLocal        String      user for local server
+ * @param  passwordLocal    String      password for local server
+ * @param  databaseLocal    String      database for local server
+ * @param  remoteURL        String      URL to remote couchbase
+ * @param  remoteUser       String      user for remote server
+ * @param  remotePassword   String      password for remote server
+ * @param  events           Boolean     activate the events for push and pull
+ * @param  onEnd            Callback    function to call when finish (recieve port being used: function(int))
+ */
+CouchBase.serverLocalRemote(Integer listen_port, String userLocal, String passwordLocal, String databaseLocal,
+                                String remoteURL, String  remoteUser, String remotePassword, Boolean events,
+                                Callback onEnd)
+```
+
+# Create syncing with already created local database
+```java
+/**
+ * starts syncing between, already created, local db and remote
+ * @param  databaseLocal    String      database for local server
+ * @param  remoteURL        String      URL to remote couchbase
+ * @param  remoteUser       String      user for remote server
+ * @param  remotePassword   String      password for remote server
+ * @param  events           Boolean     activate the events for push and pull
+ * @param  onEnd            Callback    function to call when finish (doesnt recieve any value: function(void))
+ */
+CouchBase.serverRemote(String databaseLocal, String remoteURL, String  remoteUser,
+                            String remotePassword, Boolean events, Callback onEnd) {
+```
