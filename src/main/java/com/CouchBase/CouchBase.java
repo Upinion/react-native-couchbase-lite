@@ -38,8 +38,8 @@ import java.net.URL;
 public class CouchBase extends ReactContextBaseJavaModule {
 
     private ReactApplicationContext context;
+    private Manager managerServer;
     private boolean initFailed = false;
-    private Manager server;
     private int listenPort;
 
     private static final String PUSH_EVENT_KEY = "couchBasePushEvent";
@@ -108,7 +108,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
                        String remoteURL, String  remoteUser, String remotePassword, Boolean events,
                        Callback onEnd) {
 
-        Manager ss = startServer(listen_port, userLocal, passwordLocal);
+        startServer(listen_port, userLocal, passwordLocal);
+        Manager ss = this.managerServer;
 
         if(!(databaseLocal != null && remoteURL != null && remoteUser != null && remotePassword != null))
             throw new JavascriptException("CouchBase Server bad arguments");
@@ -174,7 +175,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
     public void serverRemote(String databaseLocal, String remoteURL, String  remoteUser,
                                   String remotePassword, Boolean events, Callback onEnd) {
 
-        Manager ss = this.server;
+        Manager ss = this.managerServer;
 
         if(ss == null)
             throw new JavascriptException("CouchBase local server needs to be started first");
@@ -234,9 +235,31 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Function to be shared to React-native, compacts an already created local database
+     * @param  databaseLocal    String      database for local server
+     */
+    @ReactMethod
+    public void compact(String databaseLocal) {
+
+        Manager ss = this.managerServer;
+
+        if(ss == null)
+            throw new JavascriptException("CouchBase local server needs to be started first");
+        if(databaseLocal == null)
+            throw new JavascriptException("CouchBase Server bad arguments");
+
+        try {
+            Database db = ss.getDatabase(databaseLocal);
+            db.compact();
+        }catch(Exception e){
+            throw new JavascriptException(e.getMessage());
+        }
+    }
+
+    /**
      * Private functions to create couchbase server
      */
-    private Manager startServer(Integer listen_port, String userLocal, String passwordLocal) throws JavascriptException{
+    private void startServer(Integer listen_port, String userLocal, String passwordLocal) throws JavascriptException{
 
         if(!(listen_port != null && userLocal != null && passwordLocal != null))
             throw new JavascriptException("CouchBase Server bad arguments");
@@ -252,7 +275,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         } catch (Exception e) {
             throw new JavascriptException(e.getMessage());
         }
-        return server;
+        this.managerServer = server;
     }
 
     private Manager startCBLite() throws IOException {
