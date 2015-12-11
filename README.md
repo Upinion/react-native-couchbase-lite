@@ -140,3 +140,11 @@ CouchBase.serverLocalRemote(Integer listen_port, String userLocal, String passwo
 CouchBase.serverRemote(String databaseLocal, String remoteURL, String  remoteUser,
                             String remotePassword, Boolean events, Callback onEnd) {
 ```
+### Compact an existing local database
+```java
+/**
+ * compacts an already created local database
+ * @param  databaseLocal    String      database for local server
+ */
+public void compact(String databaseLocal)
+```
