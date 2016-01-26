@@ -16,7 +16,6 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 
 import com.couchbase.lite.android.AndroidContext;
-import com.couchbase.lite.javascript.JavaScriptViewCompiler;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DocumentChange;
@@ -27,6 +26,7 @@ import com.couchbase.lite.listener.LiteServlet;
 import com.couchbase.lite.listener.Credentials;
 import com.couchbase.lite.router.URLStreamHandlerFactory;
 import com.couchbase.lite.View;
+import com.couchbase.lite.javascript.JavaScriptViewCompiler;
 import com.couchbase.lite.util.Log;
 import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.auth.AuthenticatorFactory;
@@ -54,6 +54,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
     public CouchBase(ReactApplicationContext reactContext) {
         super(reactContext);
         this.context = reactContext;
+        // Register the JavaScript view compiler
+        View.setCompiler(new JavaScriptViewCompiler());
     }
 
     /**
@@ -269,7 +271,6 @@ public class CouchBase extends ReactContextBaseJavaModule {
         try {
             Credentials allowedCredentials = new Credentials(userLocal, passwordLocal);
             URLStreamHandlerFactory.registerSelfIgnoreError();
-            View.setCompiler(new JavaScriptViewCompiler());
             server = startCBLite();
 
             listenPort = startCBLListener( listen_port, server, allowedCredentials);
