@@ -10,9 +10,11 @@
     "react",
     "react-native",
     "android",
+    "ios",
     "couchbase"
   ],
   "author": "JDiaz <julian.diaz@upinion.com>",
+  "contributors": ["Alberto Mtnz <alberto.martinez@upinion.com>"],
   "license": "MIT",
   "repository": "https://github.com/Upinion/react-native-couchbase-lite",
   "bugs": "https://github.com/Upinion/react-native-couchbase-lite/issues",
