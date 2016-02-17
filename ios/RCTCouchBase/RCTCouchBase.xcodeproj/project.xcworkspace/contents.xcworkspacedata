@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:RCTCouchBase.xcodeproj">
+      location = "self:/Users/albertommr/Documents/upinion/react-native-couchbase-lite/ios/RCTCouchBase/RCTCouchBase.xcodeproj">
    </FileRef>
 </Workspace>

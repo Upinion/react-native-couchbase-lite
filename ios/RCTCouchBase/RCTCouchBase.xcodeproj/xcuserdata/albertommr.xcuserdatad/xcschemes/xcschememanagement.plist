@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>RCTCouchBase 2.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>RCTCouchBase.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -12,7 +17,17 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>9D059E3C1C6E2C2200833226</key>
+		<key>9D7A523D1C74B6D7008CD5A4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9D7A524A1C74B9C1008CD5A4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9DC55E551C738CE800931EA6</key>
 		<dict>
 			<key>primary</key>
 			<true/>
