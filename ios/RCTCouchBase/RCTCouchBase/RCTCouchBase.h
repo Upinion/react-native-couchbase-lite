@@ -7,16 +7,22 @@
 //
 
 #import "RCTBridgeModule.h"
-#import <CouchbaseLite/CBLManager.h>
-#import <CouchbaseLite/CBLReplication.h>
+#import "RCTEventDispatcher.h"
+#import <CouchbaseLite/CouchbaseLite.h>
 #import <CouchbaseLiteListener/CBLListener.h>
+#import "CBLRegisterJSViewCompiler.h"
+
+extern NSString* const PUSH;
+extern NSString* const PULL;
+extern NSString* const DB_CHANGED;
 
 @interface RCTCouchBase : NSObject <RCTBridgeModule>
 {
     CBLManager *manager;
     CBLListener *listener;
-    CBLReplication *push;
-    CBLReplication *pull;
+    NSMutableDictionary* databases;
+    NSMutableDictionary* pulls;
+    NSMutableDictionary* pushes;
 }
 
 @end
