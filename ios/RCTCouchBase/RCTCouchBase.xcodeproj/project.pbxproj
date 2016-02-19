@@ -7,43 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9D7A520E1C7486A3008CD5A4 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7A520D1C7486A3008CD5A4 /* CFNetwork.framework */; };
-		9D7A52101C7486AD008CD5A4 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7A520F1C7486AD008CD5A4 /* Security.framework */; };
-		9D7A52121C7486BA008CD5A4 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7A52111C7486BA008CD5A4 /* SystemConfiguration.framework */; };
-		9D7A521C1C748DAA008CD5A4 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7A521B1C748DAA008CD5A4 /* libsqlite3.dylib */; };
-		9D7A521F1C748DCA008CD5A4 /* libz.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7A521D1C748DBA008CD5A4 /* libz.1.dylib */; };
 		9DC55E5C1C738CE900931EA6 /* RCTCouchBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 9DC55E5B1C738CE900931EA6 /* RCTCouchBase.m */; };
-		9DC55E641C738D3200931EA6 /* CouchbaseLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9DC55E621C738D3200931EA6 /* CouchbaseLite.framework */; };
-		9DC55E651C738D3200931EA6 /* CouchbaseLiteListener.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9DC55E631C738D3200931EA6 /* CouchbaseLiteListener.framework */; };
-		9DC55E691C738DA900931EA6 /* libCBLJSViewCompiler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9DC55E681C738DA900931EA6 /* libCBLJSViewCompiler.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		9DC55E541C738CE800931EA6 /* CopyFiles */ = {
+		9DC55E541C738CE800931EA6 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
 			);
+			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		9D7A520D1C7486A3008CD5A4 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		9D7A520F1C7486AD008CD5A4 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		9D7A52111C7486BA008CD5A4 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		9D7A521B1C748DAA008CD5A4 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = ../../../../../../../../usr/lib/libsqlite3.dylib; sourceTree = "<group>"; };
-		9D7A521D1C748DBA008CD5A4 /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = ../../../../../../../../usr/lib/libz.1.dylib; sourceTree = "<group>"; };
 		9D7A524F1C74B9C1008CD5A4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9D7A52531C74BA8F008CD5A4 /* RCTCouchBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTCouchBase.h; sourceTree = "<group>"; };
 		9DC55E561C738CE900931EA6 /* libRCTCouchBase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRCTCouchBase.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9DC55E5B1C738CE900931EA6 /* RCTCouchBase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTCouchBase.m; sourceTree = "<group>"; };
-		9DC55E621C738D3200931EA6 /* CouchbaseLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CouchbaseLite.framework; sourceTree = "<group>"; };
-		9DC55E631C738D3200931EA6 /* CouchbaseLiteListener.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CouchbaseLiteListener.framework; sourceTree = "<group>"; };
-		9DC55E671C738DA900931EA6 /* CBLRegisterJSViewCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CBLRegisterJSViewCompiler.h; sourceTree = "<group>"; };
-		9DC55E681C738DA900931EA6 /* libCBLJSViewCompiler.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libCBLJSViewCompiler.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,14 +35,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9D7A521F1C748DCA008CD5A4 /* libz.1.dylib in Frameworks */,
-				9D7A521C1C748DAA008CD5A4 /* libsqlite3.dylib in Frameworks */,
-				9D7A52121C7486BA008CD5A4 /* SystemConfiguration.framework in Frameworks */,
-				9D7A52101C7486AD008CD5A4 /* Security.framework in Frameworks */,
-				9D7A520E1C7486A3008CD5A4 /* CFNetwork.framework in Frameworks */,
-				9DC55E651C738D3200931EA6 /* CouchbaseLiteListener.framework in Frameworks */,
-				9DC55E641C738D3200931EA6 /* CouchbaseLite.framework in Frameworks */,
-				9DC55E691C738DA900931EA6 /* libCBLJSViewCompiler.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,15 +71,6 @@
 		9DC55E661C738D3D00931EA6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				9D7A521D1C748DBA008CD5A4 /* libz.1.dylib */,
-				9D7A521B1C748DAA008CD5A4 /* libsqlite3.dylib */,
-				9D7A52111C7486BA008CD5A4 /* SystemConfiguration.framework */,
-				9D7A520F1C7486AD008CD5A4 /* Security.framework */,
-				9D7A520D1C7486A3008CD5A4 /* CFNetwork.framework */,
-				9DC55E671C738DA900931EA6 /* CBLRegisterJSViewCompiler.h */,
-				9DC55E681C738DA900931EA6 /* libCBLJSViewCompiler.a */,
-				9DC55E621C738D3200931EA6 /* CouchbaseLite.framework */,
-				9DC55E631C738D3200931EA6 /* CouchbaseLiteListener.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -117,7 +84,7 @@
 			buildPhases = (
 				9DC55E521C738CE800931EA6 /* Sources */,
 				9DC55E531C738CE800931EA6 /* Frameworks */,
-				9DC55E541C738CE800931EA6 /* CopyFiles */,
+				9DC55E541C738CE800931EA6 /* Copy Files */,
 			);
 			buildRules = (
 			);
@@ -268,7 +235,7 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "RCTCouchBase/RCTCouchBase-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -290,7 +257,7 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "RCTCouchBase/RCTCouchBase-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 			};
 			name = Release;
 		};
