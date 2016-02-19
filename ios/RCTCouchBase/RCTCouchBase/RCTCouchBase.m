@@ -10,7 +10,7 @@
 
 @implementation RCTCouchBase
 
-RCT_EXPORT_MODULE("CouchBase")
+RCT_EXPORT_MODULE(CouchBase)
 
 NSString* const PUSH = @"couchBasePushEvent";
 NSString* const PULL = @"couchBasePullEvent";
@@ -74,8 +74,7 @@ NSString* const DB_CHANGED = @"couchBaseDBEvent";
             
             // Callback handler
             if (onEnd != nil) {
-                NSArray *cb = @[listener.URL];
-                onEnd(@[[NSNull null], cb]);
+                onEnd(@[[NSNumber numberWithInt:listener.port]]);
             }
             
         } else {
