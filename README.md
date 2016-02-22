@@ -1,7 +1,8 @@
 # react-native-couchbase
+
 React native Couchbase allows to create a couchbase server.
 
-### Installation
+## Installation
 
 ```bash
 npm install --save react-native-couchbase
@@ -53,8 +54,6 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
       .setUseDeveloperSupport(BuildConfig.DEBUG)
       .setInitialLifecycleState(LifecycleState.RESUMED)
       .build();
-
- 
   ......
 
 }
@@ -96,6 +95,7 @@ DeviceEventEmitter.addListener(CouchBase.DBChanged, (event) => {
 ## Functions
 
 ### Create local couchbase
+
 ```java
  /** 
  * starts a local couchbase server
@@ -108,6 +108,7 @@ CouchBase.serverLocal(Integer listen_port, String userLocal, String passwordLoca
 ```
 
 ### Create local couchbase and syncing with remote
+
 ```java 
 /**
  * starts a local couchbase server and syncs with remote
@@ -148,3 +149,26 @@ CouchBase.serverRemote(String databaseLocal, String remoteURL, String  remoteUse
  */
 public void compact(String databaseLocal)
 ```
+
+## Setup
+
+### iOS
+
+1. [Download](http://www.couchbase.com/nosql-databases/downloads) Couchbase
+   Mobile for iOS and add the libraries to the React native project, including
+   CBLRegisterJSViewCompiler.h
+1. Add the project ```RCTCouchBase``` to the React Native project.
+2. In ```RCTCouchBase```, in ```Header Search Paths```, add the route to your
+   ```${react native mobile application}/node_modules/react-native/React``` folder
+3. In the React Native project, you have to add the following frameworks and
+   libraries to your ```Build phase```:
+   - libCBJSViewCompiler.a
+   - libRCTCouchBase (from the product folder in RCTCouchBase)
+   - CouchbaseLite.framework
+   - CouchbaseLiteListener.framework
+   - CFNetwork.framework
+   - Security.framework
+   - SystemConfiguration.framework
+   - libsqlite3.dylib
+   - libz.dylib
+4. Compile ```RCTCouchBase``` and run the React native project.
