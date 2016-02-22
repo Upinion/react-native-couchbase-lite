@@ -1,6 +1,6 @@
 {
   "name": "react-native-couchbase",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "React native Couchbase allows to start a couchbase server and sync.",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,9 @@
     "couchbase"
   ],
   "author": "JDiaz <julian.diaz@upinion.com>",
-  "contributors": ["Alberto Mtnz <alberto.martinez@upinion.com>"],
+  "contributors": [
+    "Alberto Mtnz <alberto.martinez@upinion.com>"
+  ],
   "license": "MIT",
   "repository": "https://github.com/Upinion/react-native-couchbase-lite",
   "bugs": "https://github.com/Upinion/react-native-couchbase-lite/issues",
