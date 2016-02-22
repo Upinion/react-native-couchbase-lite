@@ -159,7 +159,7 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
    CBLRegisterJSViewCompiler.h
 1. Add the project ```RCTCouchBase``` to the React Native project.
 2. In ```RCTCouchBase```, in ```Header Search Paths```, add the route to your
-   ```${react native mobile application}/node_modules/react-native/React``` folder
+   ```${react native mobile application}/node_modules/react-native/React``` folder and also Frameworks headers
 3. In the React Native project, you have to add the following frameworks and
    libraries to your ```Build phase```:
    - libCBJSViewCompiler.a
