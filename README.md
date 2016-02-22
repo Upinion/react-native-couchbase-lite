@@ -112,7 +112,7 @@ public void compact(String databaseLocal)
 ```gradle
 ...
 include ':CouchBase', ':app'
-project(':CouchBase').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-couchbase')
+project(':CouchBase').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-couchbase/android')
 ```
 
 * In `android/app/build.gradle`
