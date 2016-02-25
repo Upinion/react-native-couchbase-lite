@@ -59,10 +59,12 @@ NSString* const DB_CHANGED = @"couchBaseDBEvent";
 {
     
     // Set up the listener.
-    NSDictionary *auth = @{user:pass};
     listener = [[CBLListener alloc] initWithManager:manager port:port];
-    [listener setPasswords: auth];
-    
+    if (user != nil && pass != nil){
+        NSDictionary *auth = @{user:pass};
+        [listener setPasswords: auth];
+    }
+
     // Init the listener.
     @try {
         NSError *err = nil;
