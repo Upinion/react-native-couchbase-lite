@@ -42,10 +42,12 @@ public class CouchBase extends ReactContextBaseJavaModule {
     private Manager managerServer;
     private boolean initFailed = false;
     private int listenPort;
+    protected boolean isDebug = false;
 
     private static final String PUSH_EVENT_KEY = "couchBasePushEvent";
     private static final String PULL_EVENT_KEY = "couchBasePullEvent";
     private static final String DB_EVENT_KEY = "couchBaseDBEvent";
+    public static final String TAG = "Couchbase-Lite-Android";
 
     /**
      * Constructor for the Native Module
@@ -61,7 +63,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
      */
     @Override
     public String getName() {
-        return "CouchBase";
+        return TAG;
     }
 
     /**
@@ -258,6 +260,18 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Enable debug log for CBL
+     * @param  debug_mode      boolean      debug module for develop: true for VERBOSE log, false for Default log level.
+     * */
+    @ReactMethod
+    public void enableLog(boolean debug_mode) {
+
+        if(debug_mode){
+            isDebug = true;
+        }
+    }
+
+    /**
      * Private functions to create couchbase server
      */
     private void startServer(Integer listen_port, String userLocal, String passwordLocal) throws JavascriptException{
@@ -281,6 +295,23 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
 
     private Manager startCBLite() throws IOException {
+        if(isDebug){
+            Manager.enableLogging(TAG, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_SYNC, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_SYNC_ASYNC_TASK, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_BATCHER, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_QUERY, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_VIEW, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_CHANGE_TRACKER, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_BLOB_STORE, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_DATABASE, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_LISTENER, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_MULTI_STREAM_WRITER, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_REMOTE_REQUEST, Log.VERBOSE);
+            Manager.enableLogging(Log.TAG_ROUTER, Log.VERBOSE);
+        }
+        
         return new Manager( new AndroidContext(this.context), Manager.DEFAULT_OPTIONS);
     }
 
