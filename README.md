@@ -95,6 +95,15 @@ DeviceEventEmitter.addListener(CouchBase.DBChanged, (event) => {
 
 ## Functions
 
+### Enable debug log
+```java
+ /**
+ * Enable debug log for CBL
+ * @param  debug_mode      boolean      debug module for develop: true for VERBOSE log, false for Default log level.
+ */
+CouchBase.enableLog(boolean debug_mode)
+```
+
 ### Create local couchbase
 ```java
  /** 
