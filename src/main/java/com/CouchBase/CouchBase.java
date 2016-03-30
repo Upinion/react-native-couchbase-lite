@@ -38,6 +38,10 @@ import java.net.URL;
 
 public class CouchBase extends ReactContextBaseJavaModule {
 
+    private static final String STORAGE_TYPE_FORESTDB = "ForestDB";
+    private static final String STORAGE_TYPE_SQLITE = "SQLite";
+
+    private String storageType = STORAGE_TYPE_SQLITE;
     private ReactApplicationContext context;
     private Manager managerServer;
     private boolean initFailed = false;
@@ -48,6 +52,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
     private static final String PULL_EVENT_KEY = "couchBasePullEvent";
     private static final String DB_EVENT_KEY = "couchBaseDBEvent";
     public static final String TAG = "Couchbase-Lite-Android";
+
 
     /**
      * Constructor for the Native Module
@@ -295,6 +300,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
 
     private Manager startCBLite() throws IOException {
+        Manager manager;
         if(isDebug){
             Manager.enableLogging(TAG, Log.VERBOSE);
             Manager.enableLogging(Log.TAG, Log.VERBOSE);
@@ -311,8 +317,11 @@ public class CouchBase extends ReactContextBaseJavaModule {
             Manager.enableLogging(Log.TAG_REMOTE_REQUEST, Log.VERBOSE);
             Manager.enableLogging(Log.TAG_ROUTER, Log.VERBOSE);
         }
-        
-        return new Manager( new AndroidContext(this.context), Manager.DEFAULT_OPTIONS);
+        manager = new Manager(new AndroidContext(this.context), Manager.DEFAULT_OPTIONS);
+        this.storageType = STORAGE_TYPE_FORESTDB;
+        Log.i(TAG, "storageType: " + this.storageType);
+        manager.setStorageType(this.storageType);
+        return manager;
     }
 
     private int startCBLListener(int listenPort, Manager manager, Credentials allowedCredentials) {
