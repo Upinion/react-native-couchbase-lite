@@ -1,11 +1,64 @@
 {
-  "name": "react-native-couchbase",
-  "version": "1.1.1",
-  "description": "React native Couchbase allows to start a couchbase server and sync.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "_args": [
+    [
+      "react-native-couchbase@*",
+      "/Users/juldiadia/Work/mobapp"
+    ]
+  ],
+  "_from": "react-native-couchbase@*",
+  "_id": "react-native-couchbase@1.1.3",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/react-native-couchbase",
+  "_nodeVersion": "5.8.0",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/react-native-couchbase-1.1.2.tgz_1458206550795_0.8927902770228684"
   },
+  "_npmUser": {
+    "email": "julian.diaz@upinion.com",
+    "name": "juldiadia"
+  },
+  "_npmVersion": "3.8.2",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "react-native-couchbase",
+    "raw": "react-native-couchbase@*",
+    "rawSpec": "*",
+    "scope": null,
+    "spec": "*",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_shasum": "84583024652bc93268a3ab1595350939302a4cfa",
+  "_shrinkwrap": null,
+  "_spec": "react-native-couchbase@*",
+  "_where": "/Users/juldiadia/Work/mobapp",
+  "author": {
+    "email": "julian.diaz@upinion.com",
+    "name": "JDiaz"
+  },
+  "bugs": {
+    "url": "https://github.com/Upinion/react-native-couchbase-lite/issues"
+  },
+  "contributors": [
+    {
+      "email": "alberto.martinez@upinion.com",
+      "name": "Alberto Mtnz"
+    }
+  ],
+  "dependencies": {},
+  "description": "React native Couchbase allows to start a couchbase server and sync.",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "84583024652bc93268a3ab1595350939302a4cfa",
+    "tarball": "https://registry.npmjs.org/react-native-couchbase/-/react-native-couchbase-1.1.2.tgz"
+  },
+  "gitHead": "f089e20d614ecc03a70314efe350fac7614eed2f",
+  "homepage": "https://github.com/Upinion/react-native-couchbase-lite#readme",
   "keywords": [
     "react",
     "react-native",
@@ -13,14 +66,26 @@
     "ios",
     "couchbase"
   ],
-  "author": "JDiaz <julian.diaz@upinion.com>",
-  "contributors": [
-    "Alberto Mtnz <alberto.martinez@upinion.com>"
-  ],
   "license": "MIT",
-  "repository": "https://github.com/Upinion/react-native-couchbase-lite",
-  "bugs": "https://github.com/Upinion/react-native-couchbase-lite/issues",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "email": "julian.diaz@upinion.com",
+      "name": "juldiadia"
+    }
+  ],
+  "name": "react-native-couchbase",
+  "optionalDependencies": {},
   "peerDependencies": {
     "react-native": ">=0.11"
-  }
+  },
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Upinion/react-native-couchbase-lite.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.1.2"
 }
