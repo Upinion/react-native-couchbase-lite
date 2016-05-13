@@ -205,6 +205,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     public void changed(Replication.ChangeEvent event) {
                         WritableMap eventM = Arguments.createMap();
                         eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                        eventM.putString("updateSequence", ""+event.getSource().getLocalDatabase().getLastSequenceNumber());
                         sendEvent(context, PUSH_EVENT_KEY, eventM);
                     }
                 });
@@ -213,6 +214,9 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     public void changed(Replication.ChangeEvent event) {
                         WritableMap eventM = Arguments.createMap();
                         eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                        eventM.putString("updateSequence", ""+event.getSource().getLocalDatabase().getLastSequenceNumber());
+                        eventM.putString("completedChanges", ""+event.getSource().getCompletedChangesCount());
+                        eventM.putString("totalChanges", ""+event.getSource().getChangesCount());
                         sendEvent(context, PULL_EVENT_KEY, eventM);
                     }
                 });
@@ -223,6 +227,10 @@ public class CouchBase extends ReactContextBaseJavaModule {
                             WritableMap eventM = Arguments.createMap();
                             eventM.putString("databaseName", event.getSource().getName());
                             eventM.putString("id", dc.getDocumentId());
+                            eventM.putString("updateSequence", ""+event.getSource().getLastSequenceNumber());
+                            eventM.putString("completedChanges", ""+event.getSource().getCompletedChangesCount());
+                            eventM.putString("totalChanges", ""+event.getSource().getChangesCount());
+
                             sendEvent(context, DB_EVENT_KEY, eventM);
                         }
                     }
