@@ -134,24 +134,32 @@ withRemotePassword: (NSString*) remotePassword
     if (events) {
         
         [[NSNotificationCenter defaultCenter]
-         addObserverForName:kCBLDatabaseChangeNotification
+         addObserverForName:kCBLReplicationChangeNotification
          object:pull
          queue:nil
          usingBlock:^(NSNotification* n) {
-             if (pull.status == kCBLReplicationActive &&
-                 pull.completedChangesCount == pull.changesCount) {
-                 [self.bridge.eventDispatcher sendAppEventWithName:PULL body:@{}];
+             if (pull.status == kCBLReplicationActive) {
+                 NSDictionary* map = @{
+                                       @"databaseName": database.name,
+                                       @"changesCount": [NSString stringWithFormat:@"%u", pull.completedChangesCount],
+                                       @"totalChanges": [NSString stringWithFormat:@"%u", pull.changesCount]
+                                       };
+                 [self.bridge.eventDispatcher sendAppEventWithName:PULL body:map];
              }
          }];
         
         [[NSNotificationCenter defaultCenter]
-         addObserverForName:kCBLDatabaseChangeNotification
+         addObserverForName:kCBLReplicationChangeNotification
          object:push
          queue:nil
          usingBlock:^(NSNotification* n) {
-             if (push.status == kCBLReplicationActive &&
-                 push.completedChangesCount == push.changesCount) {
-                 [self.bridge.eventDispatcher sendAppEventWithName:PUSH body:@{}];
+             if (push.status == kCBLReplicationActive) {
+                 NSDictionary* map = @{
+                                       @"databaseName": database.name,
+                                       @"changesCount": [NSString stringWithFormat:@"%u", push.completedChangesCount],
+                                       @"totalChanges": [NSString stringWithFormat:@"%u", push.changesCount]
+                                       };
+                 [self.bridge.eventDispatcher sendAppEventWithName:PUSH body:map];
              }
          }];
         
