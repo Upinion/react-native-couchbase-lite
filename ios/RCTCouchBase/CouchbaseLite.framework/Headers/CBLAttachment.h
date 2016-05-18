@@ -6,16 +6,10 @@
 //  Copyright (c) 2012-2013 Couchbase, Inc. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import "CBLBase.h"
 @class CBLDocument, CBLRevision, CBLSavedRevision;
 
-#if __has_feature(nullability) // Xcode 6.3+
-#pragma clang assume_nonnull begin
-#else
-#define nullable
-#define __nullable
-#endif
-
+NS_ASSUME_NONNULL_BEGIN
 
 /** A binary attachment to a document revision.
     Existing attachments can be gotten from -[CBLRevision attachmentNamed:].
@@ -38,8 +32,18 @@
 /** The length in bytes of the contents. */
 @property (readonly) UInt64 length;
 
-/** The CouchbaseLite metadata about the attachment, that lives in the document. */
-@property (readonly) NSDictionary* metadata;
+/** The length in bytes of the encoded form of the attachment.
+    This may be smaller than the length if the attachment is stored in compressed form. */
+@property (readonly) UInt64 encodedLength;
+
+/** The Couchbase Lite metadata about the attachment, that lives in the document. */
+@property (readonly) CBLJSONDict* metadata;
+
+/** Is the content locally available? This may be NO if the attachment's document was pulled
+    from a remote database by a CBLReplication whose downloadAttachments property was NO.
+    If so, the content accessors will return nil. The attachment can be downloaded by calling
+    the replication's -downloadAttachment:onProgress: method. */
+@property (readonly) BOOL contentAvailable;
 
 /** The data of the attachment. */
 @property (readonly, nullable) NSData* content;
@@ -57,9 +61,14 @@
     so this property will return nil. */
 @property (readonly, nullable) NSURL* contentURL;
 
+/** Deletes the attachment's contents from local storage. If the attachment is still available on
+    a remote server, it can be restored by calling -[CBLReplication downloadAttachment:onProgress:].
+ */
+- (BOOL) purge;
+
+- (instancetype) init NS_UNAVAILABLE;
+
 @end
 
 
-#if __has_feature(nullability)
-#pragma clang assume_nonnull end
-#endif
+NS_ASSUME_NONNULL_END

@@ -10,6 +10,8 @@
 
 @implementation RCTCouchBase
 
+@synthesize bridge = _bridge;
+
 RCT_EXPORT_MODULE(CouchBase)
 
 NSString* const PUSH = @"couchBasePushEvent";
@@ -58,6 +60,7 @@ NSString* const DB_CHANGED = @"couchBaseDBEvent";
         withCallback: (RCTResponseSenderBlock) onEnd
 {
     
+initListener:
     // Set up the listener.
     listener = [[CBLListener alloc] initWithManager:manager port:port];
     if (user != nil && pass != nil){
@@ -81,7 +84,8 @@ NSString* const DB_CHANGED = @"couchBaseDBEvent";
             
         } else {
             NSLog(@"%@", err);
-            exit(-1);
+            port++;
+            goto initListener;
         }
         
         // Exception handler
@@ -129,56 +133,13 @@ withRemotePassword: (NSString*) remotePassword
     
     push.authenticator = auth;
     pull.authenticator = auth;
-    
+
     // Add the events handler.
     if (events) {
         
-        [[NSNotificationCenter defaultCenter]
-         addObserverForName:kCBLReplicationChangeNotification
-         object:pull
-         queue:nil
-         usingBlock:^(NSNotification* n) {
-             if (pull.status == kCBLReplicationActive) {
-                 NSDictionary* map = @{
-                                       @"databaseName": database.name,
-                                       @"changesCount": [NSString stringWithFormat:@"%u", pull.completedChangesCount],
-                                       @"totalChanges": [NSString stringWithFormat:@"%u", pull.changesCount]
-                                       };
-                 [self.bridge.eventDispatcher sendAppEventWithName:PULL body:map];
-             }
-         }];
-        
-        [[NSNotificationCenter defaultCenter]
-         addObserverForName:kCBLReplicationChangeNotification
-         object:push
-         queue:nil
-         usingBlock:^(NSNotification* n) {
-             if (push.status == kCBLReplicationActive) {
-                 NSDictionary* map = @{
-                                       @"databaseName": database.name,
-                                       @"changesCount": [NSString stringWithFormat:@"%u", push.completedChangesCount],
-                                       @"totalChanges": [NSString stringWithFormat:@"%u", push.changesCount]
-                                       };
-                 [self.bridge.eventDispatcher sendAppEventWithName:PUSH body:map];
-             }
-         }];
-        
-        
-        [[NSNotificationCenter defaultCenter]
-         addObserverForName:kCBLDatabaseChangeNotification
-         object:database
-         queue:nil
-         usingBlock:^(NSNotification* n) {
-             NSArray* changes = n.userInfo[@"changes"];
-             
-             for (CBLDatabaseChange* change in changes) {
-                 NSDictionary* map = @{
-                                       @"databaseName": database.name,
-                                       @"id": change.documentID
-                                       };
-                 [self.bridge.eventDispatcher sendAppEventWithName:DB_CHANGED body:map];
-             }
-         }];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:pull];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:push]; 
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDatabaseEvent:) name:kCBLDatabaseChangeNotification object:database];
     }
     
     [push start];
@@ -195,6 +156,38 @@ withRemotePassword: (NSString*) remotePassword
 
 }
 
+- (void) handleDatabaseEvent: (NSNotification*) notification
+{
+    CBLDatabase* database = notification.object;
+    NSLog(@"Change Event");
+    NSArray* changes = notification.userInfo[@"changes"];
+    
+    for (CBLDatabaseChange* change in changes) {
+        NSLog(@"Document ID: %@", change.documentID);
+        NSDictionary* map = @{
+                              @"databaseName": database.name,
+                              @"id": change.documentID
+                              };
+        [self.bridge.eventDispatcher sendAppEventWithName:DB_CHANGED body:map];
+    }
+}
+
+- (void) handleReplicationEvent: (NSNotification*) notification
+{
+    CBLReplication* repl = notification.object;
+    // NSLog(@"Replication Event: %@", [NSString stringWithFormat:@"%u", repl.completedChangesCount]);
+    NSString* nameEvent = repl.pull? PULL : PUSH;
+    if (repl.status == kCBLReplicationActive) {
+        // NSLog(@"Replication is active");
+        NSDictionary* map = @{
+                              @"databaseName": repl.localDatabase.name,
+                              @"changesCount": [NSString stringWithFormat:@"%u", repl.changesCount > 0? repl.completedChangesCount+1 : repl.completedChangesCount],
+                              @"event": nameEvent,
+                              @"totalChanges": [NSString stringWithFormat:@"%u", repl.changesCount]
+                              };
+        [self.bridge.eventDispatcher sendAppEventWithName:PULL body:map];
+    }
+}
 
 RCT_EXPORT_METHOD(serverLocal: (int) listenPort
                   withUserLocal: (NSString*) userLocal

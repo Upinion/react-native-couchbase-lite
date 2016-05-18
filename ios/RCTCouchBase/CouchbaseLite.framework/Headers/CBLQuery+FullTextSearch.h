@@ -9,13 +9,7 @@
 #import "CBLQuery.h"
 
 
-#if __has_feature(nullability) // Xcode 6.3+
-#pragma clang assume_nonnull begin
-#else
-#define nullable
-#define __nullable
-#endif
-
+NS_ASSUME_NONNULL_BEGIN
 /** CBLQuery interface for full-text searches.
     To use this, the view's map function must have emitted full-text strings as keys
     using the CBLTextKey() function. */
@@ -38,15 +32,13 @@
 @property (copy, nullable) NSString* fullTextQuery;
 
 /** If set to YES, the query will collect snippets of the text surrounding each match, available
-    via the CBLFullTextQueryRow's -snippetWithWordStart:wordEnd: method.
-    (NOTE: ForestDB currently does not support snippets.) */
+    via the CBLFullTextQueryRow's -snippetWithWordStart:wordEnd: method. */
 @property BOOL fullTextSnippets;
 
 /** If YES (the default) the full-text query result rows will be sorted by (approximate) relevance.
     If set to NO, the rows will be returned in the order the documents were added to the database,
     i.e. essentially unordered; this is somewhat faster, so it can be useful if you don't care
-    about the ordering of the rows.
-    (NOTE: ForestDB currently does not support ranking.) */
+    about the ordering of the rows. */
 @property BOOL fullTextRanking;
 
 @end
@@ -85,6 +77,4 @@
 @end
 
 
-#if __has_feature(nullability)
-#pragma clang assume_nonnull end
-#endif
+NS_ASSUME_NONNULL_END

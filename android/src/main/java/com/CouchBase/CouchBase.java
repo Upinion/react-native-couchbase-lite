@@ -137,8 +137,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     public void changed(Replication.ChangeEvent event) {
                         WritableMap eventM = Arguments.createMap();
                         eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
-                        eventM.putString("changesCount", ""+event.getSource().getCompletedChangesCount());
-                        eventM.putString("totalChanges", ""+event.getSource().getChangesCount());
+                        eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                        eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
                         sendEvent(context, PUSH_EVENT_KEY, eventM);
                     }
                 });
@@ -147,8 +147,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     public void changed(Replication.ChangeEvent event) {
                         WritableMap eventM = Arguments.createMap();
                         eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
-                        eventM.putString("changesCount", ""+event.getSource().getCompletedChangesCount());
-                        eventM.putString("totalChanges", ""+event.getSource().getChangesCount());
+                        eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                        eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
                         sendEvent(context, PULL_EVENT_KEY, eventM);
                     }
                 });
@@ -159,6 +159,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                             WritableMap eventM = Arguments.createMap();
                             eventM.putString("databaseName", event.getSource().getName());
                             eventM.putString("id", dc.getDocumentId());
+                            sendEvent(context, DB_EVENT_KEY, eventM);
                         }
                     }
                 });
@@ -221,7 +222,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     public void changed(Replication.ChangeEvent event) {
                         WritableMap eventM = Arguments.createMap();
                         eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
-                        eventM.putString("changesCount", string.valueOf(event.getSource().getCompletedChangesCount()));
+                        eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
                         eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
                         sendEvent(context, PULL_EVENT_KEY, eventM);
                     }

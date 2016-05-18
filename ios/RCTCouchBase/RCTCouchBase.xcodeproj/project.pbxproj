@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		264752D51CE0BD9200522AFF /* CouchbaseLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264752D21CE0BD9200522AFF /* CouchbaseLite.framework */; };
-		264752D61CE0BD9200522AFF /* CouchbaseLiteListener.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264752D31CE0BD9200522AFF /* CouchbaseLiteListener.framework */; };
-		264752D71CE0BD9200522AFF /* libCBLJSViewCompiler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 264752D41CE0BD9200522AFF /* libCBLJSViewCompiler.a */; };
+		2606FF5E1CEB6402002D9C39 /* CouchbaseLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2606FF5B1CEB6402002D9C39 /* CouchbaseLite.framework */; };
+		2606FF5F1CEB6402002D9C39 /* CouchbaseLiteListener.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2606FF5C1CEB6402002D9C39 /* CouchbaseLiteListener.framework */; };
+		2606FF601CEB6402002D9C39 /* libCBLJSViewCompiler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2606FF5D1CEB6402002D9C39 /* libCBLJSViewCompiler.a */; };
 		9DC55E5C1C738CE900931EA6 /* RCTCouchBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 9DC55E5B1C738CE900931EA6 /* RCTCouchBase.m */; };
 /* End PBXBuildFile section */
 
@@ -27,10 +27,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		26276ADD1CE0BFDA004E16C7 /* CBLRegisterJSViewCompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CBLRegisterJSViewCompiler.h; path = RCTCouchBase/CBLRegisterJSViewCompiler.h; sourceTree = "<group>"; };
-		264752D21CE0BD9200522AFF /* CouchbaseLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CouchbaseLite.framework; path = ../../../../iOS/Frameworks/CouchbaseLite.framework; sourceTree = "<group>"; };
-		264752D31CE0BD9200522AFF /* CouchbaseLiteListener.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CouchbaseLiteListener.framework; path = ../../../../iOS/Frameworks/CouchbaseLiteListener.framework; sourceTree = "<group>"; };
-		264752D41CE0BD9200522AFF /* libCBLJSViewCompiler.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libCBLJSViewCompiler.a; path = ../../../../iOS/Frameworks/libCBLJSViewCompiler.a; sourceTree = "<group>"; };
+		2606FF5A1CEB6402002D9C39 /* CBLRegisterJSViewCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CBLRegisterJSViewCompiler.h; sourceTree = "<group>"; };
+		2606FF5B1CEB6402002D9C39 /* CouchbaseLite.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CouchbaseLite.framework; sourceTree = "<group>"; };
+		2606FF5C1CEB6402002D9C39 /* CouchbaseLiteListener.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CouchbaseLiteListener.framework; sourceTree = "<group>"; };
+		2606FF5D1CEB6402002D9C39 /* libCBLJSViewCompiler.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libCBLJSViewCompiler.a; sourceTree = "<group>"; };
 		9D7A524F1C74B9C1008CD5A4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9D7A52531C74BA8F008CD5A4 /* RCTCouchBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTCouchBase.h; sourceTree = "<group>"; };
 		9DC55E561C738CE900931EA6 /* libRCTCouchBase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRCTCouchBase.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,9 +42,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				264752D61CE0BD9200522AFF /* CouchbaseLiteListener.framework in Frameworks */,
-				264752D51CE0BD9200522AFF /* CouchbaseLite.framework in Frameworks */,
-				264752D71CE0BD9200522AFF /* libCBLJSViewCompiler.a in Frameworks */,
+				2606FF5F1CEB6402002D9C39 /* CouchbaseLiteListener.framework in Frameworks */,
+				2606FF5E1CEB6402002D9C39 /* CouchbaseLite.framework in Frameworks */,
+				2606FF601CEB6402002D9C39 /* libCBLJSViewCompiler.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,10 +81,10 @@
 		9DC55E661C738D3D00931EA6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				26276ADD1CE0BFDA004E16C7 /* CBLRegisterJSViewCompiler.h */,
-				264752D21CE0BD9200522AFF /* CouchbaseLite.framework */,
-				264752D31CE0BD9200522AFF /* CouchbaseLiteListener.framework */,
-				264752D41CE0BD9200522AFF /* libCBLJSViewCompiler.a */,
+				2606FF5A1CEB6402002D9C39 /* CBLRegisterJSViewCompiler.h */,
+				2606FF5B1CEB6402002D9C39 /* CouchbaseLite.framework */,
+				2606FF5C1CEB6402002D9C39 /* CouchbaseLiteListener.framework */,
+				2606FF5D1CEB6402002D9C39 /* libCBLJSViewCompiler.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -244,7 +244,7 @@
 					"$(SRCROOT)/../../../../node_modules/react-native/React/**",
 					"$(inherited)/**",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -270,7 +270,7 @@
 					"$(SRCROOT)/../../../../node_modules/react-native/React/**",
 					"$(inherited)/**",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
