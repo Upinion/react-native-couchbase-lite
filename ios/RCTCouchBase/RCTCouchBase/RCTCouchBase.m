@@ -177,11 +177,13 @@ withRemotePassword: (NSString*) remotePassword
     CBLReplication* repl = notification.object;
     // NSLog(@"Replication Event: %@", [NSString stringWithFormat:@"%u", repl.completedChangesCount]);
     NSString* nameEvent = repl.pull? PULL : PUSH;
-    if (repl.status == kCBLReplicationActive) {
+    if (repl.status == kCBLReplicationActive ||
+        (repl.completedChangesCount > 0 && repl.completedChangesCount == repl.changesCount))
+    {
         // NSLog(@"Replication is active");
         NSDictionary* map = @{
                               @"databaseName": repl.localDatabase.name,
-                              @"changesCount": [NSString stringWithFormat:@"%u", repl.changesCount > 0? repl.completedChangesCount+1 : repl.completedChangesCount],
+                              @"changesCount": [NSString stringWithFormat:@"%u", repl.completedChangesCount],
                               @"event": nameEvent,
                               @"totalChanges": [NSString stringWithFormat:@"%u", repl.changesCount]
                               };

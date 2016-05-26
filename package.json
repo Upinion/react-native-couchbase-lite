@@ -90,5 +90,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "1.1.5"
+  p
+  "version": "1.1.6"
 }
