@@ -7,17 +7,21 @@
     [
       "react-native-couchbase@*",
       "/Users/juldiadia/Work/mobapp"
+    ],
+    [
+      "react-native-couchbase@^1.1.6",
+      "/Users/juldiadia/Work/mobapp"
     ]
   ],
-  "_from": "react-native-couchbase@*",
-  "_id": "react-native-couchbase@1.1.4",
+  "_from": "react-native-couchbase@>=1.1.6 <2.0.0",
+  "_id": "react-native-couchbase@1.1.6",
   "_inCache": true,
   "_installable": true,
   "_location": "/react-native-couchbase",
   "_nodeVersion": "5.10.1",
   "_npmOperationalInternal": {
     "host": "packages-12-west.internal.npmjs.com",
-    "tmp": "tmp/react-native-couchbase-1.1.4.tgz_1463563681958_0.5874735920224339"
+    "tmp": "tmp/react-native-couchbase-1.1.6.tgz_1464269217512_0.16591834975406528"
   },
   "_npmUser": {
     "email": "julian.diaz@upinion.com",
@@ -27,17 +31,17 @@
   "_phantomChildren": {},
   "_requested": {
     "name": "react-native-couchbase",
-    "raw": "react-native-couchbase@*",
-    "rawSpec": "*",
+    "raw": "react-native-couchbase@^1.1.6",
+    "rawSpec": "^1.1.6",
     "scope": null,
-    "spec": "*",
+    "spec": ">=1.1.6 <2.0.0",
     "type": "range"
   },
   "_requiredBy": [
     "/"
   ],
   "_shrinkwrap": null,
-  "_spec": "react-native-couchbase@*",
+  "_spec": "react-native-couchbase@^1.1.6",
   "_where": "/Users/juldiadia/Work/mobapp",
   "author": {
     "email": "julian.diaz@upinion.com",
@@ -57,8 +61,8 @@
   "devDependencies": {},
   "directories": {},
   "dist": {
-    "shasum": "f5a4a802c6a43e68103468c3eb7318df5f090ff1",
-    "tarball": "https://registry.npmjs.org/react-native-couchbase/-/react-native-couchbase-1.1.4.tgz"
+    "shasum": "598de41e18abf1ff6225ab7c019507c73b8d124a",
+    "tarball": "https://registry.npmjs.org/react-native-couchbase/-/react-native-couchbase-1.1.6.tgz"
   },
   "gitHead": "f089e20d614ecc03a70314efe350fac7614eed2f",
   "homepage": "https://github.com/Upinion/react-native-couchbase-lite#readme",
@@ -90,5 +94,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "1.1.6"
+  "version": "1.1.7"
 }

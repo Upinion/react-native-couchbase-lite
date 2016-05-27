@@ -117,7 +117,7 @@ withRemotePassword: (NSString*) remotePassword
         NSLog(@"%@", err);
         exit(-1);
     }
-    [databases setObject:database forKey:databaseLocal];
+    
     
     // Establish the connection.
     NSURL *url = [NSURL URLWithString:remoteUrl];
@@ -134,16 +134,26 @@ withRemotePassword: (NSString*) remotePassword
     push.authenticator = auth;
     pull.authenticator = auth;
 
+    push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": @30000}];
+    push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": @30000}];
+    push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": @30000}];
+    
+    pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": @30000}];
+    pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": @30000}];
+    pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": @30000}];
+    
     // Add the events handler.
     if (events) {
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:pull];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:push]; 
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDatabaseEvent:) name:kCBLDatabaseChangeNotification object:database];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDatabaseEvent:) name:kCBLDatabaseChangeNotification object:nil];
     }
     
     [push start];
     [pull start];
+    
+    [databases setObject:database forKey:databaseLocal];
     
     [pushes setObject:push forKey:databaseLocal];
     [pulls  setObject:pull forKey:databaseLocal];
@@ -159,7 +169,6 @@ withRemotePassword: (NSString*) remotePassword
 - (void) handleDatabaseEvent: (NSNotification*) notification
 {
     CBLDatabase* database = notification.object;
-    NSLog(@"Change Event");
     NSArray* changes = notification.userInfo[@"changes"];
     
     for (CBLDatabaseChange* change in changes) {
