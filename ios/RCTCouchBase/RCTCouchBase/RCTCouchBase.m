@@ -175,7 +175,7 @@ withRemotePassword: (NSString*) remotePassword
     NSArray* changes = notification.userInfo[@"changes"];
     
     for (CBLDatabaseChange* change in changes) {
-        NSLog(@"Document ID: %@", change.documentID);
+        //NSLog(@"Document ID: %@", change.documentID);
         NSDictionary* map = @{
                               @"databaseName": database.name,
                               @"id": change.documentID
