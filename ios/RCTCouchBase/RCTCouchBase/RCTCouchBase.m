@@ -28,6 +28,7 @@ NSString* const DB_CHANGED = @"couchBaseDBEvent";
         databases = [[NSMutableDictionary alloc] init];
         pulls = [[NSMutableDictionary alloc] init];
         pushes = [[NSMutableDictionary alloc] init];
+        timeout = 0;
         
         if (!manager) {
             NSLog(@"Cannot create Manager instance");
@@ -134,13 +135,15 @@ withRemotePassword: (NSString*) remotePassword
     push.authenticator = auth;
     pull.authenticator = auth;
 
-    push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": @30000}];
-    push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": @30000}];
-    push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": @30000}];
-    
-    pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": @30000}];
-    pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": @30000}];
-    pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": @30000}];
+    if (timeout > 0) {
+        push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": [NSNumber numberWithInteger:timeout]}];
+        //push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": [NSNumber numberWithInteger:timeout]}];
+        push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": [NSNumber numberWithInteger:timeout]}];
+        
+        pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": [NSNumber numberWithInteger:timeout]}];
+        //pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": [NSNumber numberWithInteger:timeout]}];
+        pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": [NSNumber numberWithInteger:timeout]}];
+    }
     
     // Add the events handler.
     if (events) {
@@ -272,6 +275,11 @@ RCT_EXPORT_METHOD(compact: (NSString*) databaseLocal)
         NSLog(@"%@", error);
         exit(-1);
     }
+}
+
+RCT_EXPORT_METHOD(setTimeout: (NSInteger) newtimeout)
+{
+    timeout = newtimeout;
 }
 
 @end

@@ -23,6 +23,7 @@ extern NSString* const DB_CHANGED;
     NSMutableDictionary* databases;
     NSMutableDictionary* pulls;
     NSMutableDictionary* pushes;
+    NSInteger timeout;
 }
 
 @end
