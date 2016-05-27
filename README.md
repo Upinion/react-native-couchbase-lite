@@ -57,7 +57,7 @@ DeviceEventEmitter.addListener(CouchBase.DBChanged, (event) => {
 ```java
  /**
  * IMPORTANT: This function is only available in IOS
- * Enable debug log for CBL
+ * Set timeout for pull or push requests
  * @param  timeout      integer     timeout for requests in ms
  */
 CouchBase.setTimeout(integer timeout)
