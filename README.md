@@ -30,10 +30,16 @@ DeviceEventEmitter.addListener(CouchBase.PUSH ...
 ```bash
 DeviceEventEmitter.addListener(CouchBase.DBChanged ...
 ```
-* Event attributes
+* Event DB Changed attributes
 ```bash
-event.databaseName  (String)    //Database related to event
-event.id            (String)    //ID of the document changed (only in DB Changed Event)
+event.databaseName          (String)    //Database related to event
+event.id                    (String)    //ID of the document changed
+```
+* Event PULL/PUSH attributes
+```bash
+event.databaseName          (String)    //Database related to event
+event.completedChangesCount (Integer)   //Changes pulled/pushed at the moment
+event.changesCount          (Integer)   //Total of changes to pull/push
 ```
 
 * Example of use
@@ -47,6 +53,15 @@ DeviceEventEmitter.addListener(CouchBase.DBChanged, (event) => {
 
 ## Functions
 
+### Set timeout for PULL or PUSH (ONLY iOS)
+```java
+ /**
+ * IMPORTANT: This function is only available in IOS
+ * Enable debug log for CBL
+ * @param  timeout      integer     timeout for requests in ms
+ */
+CouchBase.setTimeout(integer timeout)
+```
 ### Enable debug log
 ```java
  /**

@@ -196,10 +196,9 @@ withRemotePassword: (NSString*) remotePassword
         NSDictionary* map = @{
                               @"databaseName": repl.localDatabase.name,
                               @"changesCount": [NSString stringWithFormat:@"%u", repl.completedChangesCount],
-                              @"event": nameEvent,
                               @"totalChanges": [NSString stringWithFormat:@"%u", repl.changesCount]
                               };
-        [self.bridge.eventDispatcher sendAppEventWithName:PULL body:map];
+        [self.bridge.eventDispatcher sendAppEventWithName:nameEvent body:map];
     }
 }
 
