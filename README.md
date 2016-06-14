@@ -53,6 +53,18 @@ DeviceEventEmitter.addListener(CouchBase.DBChanged, (event) => {
 
 ## Functions
 
+### Close Database and Replicators (ONLY iOS)
+### Useful if you want to destroy a database which has opened replicators
+```java
+ /**
+ * IMPORTANT: This function is only available in IOS
+ * Close Database and Replicators
+ * @param  database     string      name of database
+ * @param  onEnd        Callback    function to call when finish
+ */
+CouchBase.closeDatabase(string database, Callback onEnd)
+```
+
 ### Set timeout for PULL or PUSH (ONLY iOS)
 ```java
  /**

@@ -77,7 +77,6 @@ initListener:
         // Error handler
         if (success) {
             NSLog(@"CouchBase running on %@", listener.URL);
-            
             // Callback handler
             if (onEnd != nil) {
                 onEnd(@[[NSNumber numberWithInt:listener.port]]);
@@ -85,6 +84,10 @@ initListener:
             
         } else {
             NSLog(@"%@", err);
+            //Close old databases
+            for (CBLDatabase *db in [databases allValues]) {
+                [db close:nil];
+            }
             port++;
             goto initListener;
         }
@@ -136,15 +139,16 @@ withRemotePassword: (NSString*) remotePassword
     pull.authenticator = auth;
 
     if (timeout > 0) {
-        push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": [NSNumber numberWithInteger:timeout]}];
-        //push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": [NSNumber numberWithInteger:timeout]}];
-        push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": [NSNumber numberWithInteger:timeout]}];
+        push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
+                                                                         @"poll": [NSNumber numberWithInteger:timeout],
+                                                                         @"websocket": @false
+                                                                         }];
         
-        pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"connection_timeout": [NSNumber numberWithInteger:timeout]}];
-        //pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"heartbeat": [NSNumber numberWithInteger:timeout]}];
-        pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{@"poll": [NSNumber numberWithInteger:timeout]}];
+        pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
+                                                                         @"poll": [NSNumber numberWithInteger:timeout],
+                                                                         @"websocket": @false
+                                                                         }];
     }
-    
     // Add the events handler.
     if (events) {
         
@@ -175,7 +179,6 @@ withRemotePassword: (NSString*) remotePassword
     NSArray* changes = notification.userInfo[@"changes"];
     
     for (CBLDatabaseChange* change in changes) {
-        //NSLog(@"Document ID: %@", change.documentID);
         NSDictionary* map = @{
                               @"databaseName": database.name,
                               @"id": change.documentID
@@ -187,7 +190,6 @@ withRemotePassword: (NSString*) remotePassword
 - (void) handleReplicationEvent: (NSNotification*) notification
 {
     CBLReplication* repl = notification.object;
-    // NSLog(@"Replication Event: %@", [NSString stringWithFormat:@"%u", repl.completedChangesCount]);
     NSString* nameEvent = repl.pull? PULL : PUSH;
     if (repl.status == kCBLReplicationActive ||
         (repl.completedChangesCount > 0 && repl.completedChangesCount == repl.changesCount))
@@ -279,6 +281,21 @@ RCT_EXPORT_METHOD(compact: (NSString*) databaseLocal)
 RCT_EXPORT_METHOD(setTimeout: (NSInteger) newtimeout)
 {
     timeout = newtimeout;
+}
+
+RCT_EXPORT_METHOD(closeDatabase: (NSString*) databaseName withCallback: (RCTResponseSenderBlock) onEnd)
+{
+    NSError *err;
+    //Close object so we can destroy database through REST API
+    CBLDatabase *database = [databases objectForKey: databaseName];
+    if (database != nil) {
+        [database close: &err];
+    }
+    // Callback handler
+    if (onEnd != nil) {
+        NSArray *cb = @[];
+        onEnd(@[[NSNull null], cb]);
+    }
 }
 
 @end
