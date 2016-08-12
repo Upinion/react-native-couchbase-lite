@@ -10,13 +10,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+
 /** The CBLAuthenticator protocol defines objects that can authenticate a user to a remote database
     server. An object conforming to this protocol is acquired from the CBLAuthenticator _class_'s
     factory methods, and is used by setting it as a CBLReplication's .authenticator property.
     This protocol is currently entirely opaque and not intended for applications to implement.
     The authenticator types are limited to those createable by factory methods. */
 @protocol CBLAuthenticator <NSObject>
-// No user-servicable parts inside.
 @end
 
 
@@ -58,7 +58,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (id<CBLAuthenticator>) SSLClientCertAuthenticatorWithIdentity: (SecIdentityRef)identity
                                                 supportingCerts: (nullable NSArray*)certs;
 
-+ (id<CBLAuthenticator>) SSLClientCertAuthenticatorWithAnonymousIdentity: (NSString*)label;
++ (nullable id<CBLAuthenticator>) SSLClientCertAuthenticatorWithAnonymousIdentity: (NSString*)label;
 
 - (instancetype) init NS_UNAVAILABLE;
 

@@ -6,7 +6,7 @@
 //  Copyright (c) 2011-2013 Couchbase, Inc. All rights reserved.
 //
 
-#import "MYDynamicObject.h"
+#import "CBLDynamicObject.h"
 #import "CBLDocument.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -21,13 +21,13 @@ NS_REQUIRES_PROPERTY_DEFINITIONS  // Don't let compiler auto-synthesize properti
     Supported object types are NSString, NSNumber, NSData, NSDate, NSArray, NSDictionary, NSDecimalNumber. (NSData and NSDate are not native JSON; they will be automatically converted to/from strings in base64 and ISO date formats, respectively. NSDecimalNumber is not native JSON as well; it will be converted to/from string.)
     Additionally, a property's type can be a pointer to a CBLModel subclass. This provides references between model objects. The raw property value in the document must be a string whose value is interpreted as a document ID.
     NSArray-valued properties may be restricted to a specific item class. See the documentation of +itemClassForArrayProperty: for details. */
-@interface CBLModel : MYDynamicObject <CBLDocumentModel>
+@interface CBLModel : CBLDynamicObject <CBLDocumentModel>
 
 /** Returns the CBLModel associated with a CBLDocument, or creates & assigns one if necessary.
     If the CBLDocument already has an associated model, it's returned. Otherwise a new one is instantiated.
     If you call this on CBLModel itself, it'll delegate to the CBLModelFactory to decide what class to instantiate; this lets you map different classes to different "type" property values, for instance.
     If you call this method on a CBLModel subclass, it will always instantiate an instance of that class; e.g. [MyWidgetModel modelForDocument: doc] always creates a MyWidgetModel. */
-+ (instancetype) modelForDocument: (CBLDocument*)document;
++ (nullable instancetype) modelForDocument: (CBLDocument*)document;
 
 /** Returns a new "untitled" CBLModel with a new unsaved document.
  The document won't be written to the database until -save is called. */
@@ -165,7 +165,7 @@ NS_REQUIRES_PROPERTY_DEFINITIONS  // Don't let compiler auto-synthesize properti
 
 /** The document ID to use when creating a new document.
     Default is nil, which means to assign no ID (the server will assign one). */
-- (NSString*) idForNewDocumentInDatabase: (CBLDatabase*)db              __attribute__((nonnull));
+- (nullable NSString*) idForNewDocumentInDatabase: (CBLDatabase*)db;
 
 /** Called when the model's properties are reloaded from the document.
     This happens both when initialized from a document, and after an external change. */
@@ -173,7 +173,7 @@ NS_REQUIRES_PROPERTY_DEFINITIONS  // Don't let compiler auto-synthesize properti
 
 /** Returns the database in which to look up the document ID of a model-valued property.
     Defaults to the same database as the receiver's document. You should override this if a document property contains the ID of a document in a different database. */
-- (CBLDatabase*) databaseForModelProperty: (NSString*)propertyName      __attribute__((nonnull));
+- (CBLDatabase*) databaseForModelProperty: (NSString*)propertyName;
 
 /** Marks the model as having unsaved content, ensuring that it will get saved after a short interval (if .autosaves is YES) or when -save or -[CBLDatabase saveAllModels] are called.
     You don't normally need to call this, since property setters call it for you. One case where you'd need to call it is if you want to manage mutable state in your own properties and not store the changes into dynamic properties until it's time to save. In that case you should also override -propertiesToSave and update the dynamic properties accordingly before chaining to the superclass method. */
@@ -229,7 +229,7 @@ NS_REQUIRES_PROPERTY_DEFINITIONS  // Don't let compiler auto-synthesize properti
 @interface CBLDatabase (CBLModel)
 
 /** All CBLModels associated with this database whose needsSave is true. */
-@property (readonly) CBLArrayOf(CBLModel*)* unsavedModels;
+@property (readonly, nullable) CBLArrayOf(CBLModel*)* unsavedModels;
 
 /** Saves changes to all CBLModels associated with this database whose needsSave is true. */
 - (BOOL) saveAllModels: (NSError**)outError;

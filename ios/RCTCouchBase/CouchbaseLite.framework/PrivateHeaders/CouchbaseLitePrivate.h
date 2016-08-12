@@ -8,7 +8,7 @@
 
 #import <CouchbaseLite/CouchbaseLite.h>
 #import <CouchbaseLite/CBLReplication+Transformation.h>
-@class CBL_Server, CBL_BlobStoreWriter;
+@class CBL_Server, CBL_BlobStoreWriter, CBL_RevID;
 
 
 @interface CBLManager ()
@@ -18,6 +18,10 @@
 - (CBLDatabase*) createEmptyDatabaseNamed: (NSString*)name error: (NSError**)outError;
 #endif
 + (void) setWarningsRaiseExceptions: (BOOL)wre;
+@property NSUInteger defaultMaxRevTreeDepth;
+#if !TARGET_OS_IPHONE
+- (BOOL) forgetEncryptionKeyForDatabaseNamed: (NSString*)dbName error: (NSError**)outError;
+#endif
 @end
 
 
@@ -62,7 +66,7 @@
 @property (readonly) UInt64 sequenceNumber;
 @property (readonly) BOOL isDeletion;
 /** The revID of the default "winning" revision, or nil if it did not change. */
-@property (nonatomic, readonly) NSString* winningRevisionID;
+@property (nonatomic, readonly) CBL_RevID* winningRevisionID;
 /** The revision that is now the default "winning" revision of the document, or nil if not known
     Guaranteed immutable.*/
 /** Is this a relayed notification of one from another thread, not the original? */
@@ -73,12 +77,12 @@
 
 
 @interface CBLDocument ()
+- (CBLSavedRevision*) revisionWithRevID: (CBL_RevID*)revID
+                               withBody: (BOOL)withBody;
 - (CBLSavedRevision*) putProperties: (NSDictionary*)properties
-                     prevRevID: (NSString*)prevID
-                 allowConflict: (BOOL)allowConflict
-                         error: (NSError**)outError;
-- (NSArray*) getPossibleAncestorsOfRevisionID: (NSString*)revID
-                                        limit: (NSUInteger)limit;
+                          prevRevID: (CBL_RevID*)prevID
+                      allowConflict: (BOOL)allowConflict
+                              error: (NSError**)outError;
 @end
 
 
@@ -97,8 +101,7 @@
 
 
 @interface CBLAttachment ()
-+ (NSDictionary*) installAttachmentBodies: (NSDictionary*)attachments
-                             intoDatabase: (CBLDatabase*)database   __attribute__((nonnull(2)));
+- (BOOL) saveToDatabase: (CBLDatabase*)database error: (NSError**)outError;
 @property (readwrite, copy) NSString* name;
 @property (readwrite, retain) CBLRevision* revision;
 @end
@@ -106,6 +109,8 @@
 
 @interface CBLReplication ()
 @property (nonatomic, readonly) NSDictionary* properties;
+@property (nonatomic, readonly) SInt64 lastSequencePushed;
+@property (nonatomic, readonly) NSArray* cookies;
 @end
 
 
@@ -119,5 +124,14 @@
 
 
 @interface CBLQuery ()
+@property (readonly) BOOL isAggregate;
 @property (nonatomic, strong) BOOL (^filterBlock)(CBLQueryRow*);
+- (void) runAsyncIfChangedSince: (SInt64)ifChangedSince
+                     onComplete: (void (^)(CBLQueryEnumerator*, NSError*))onComplete;
+@end
+
+
+@interface CBLQueryRow ()
+- (uint8_t/*CBLDiffItemComparison*/) compareForArrayDiff: (CBLQueryRow*)other;
+@property (readonly) CBL_RevID* _documentRevisionID;
 @end

@@ -9,13 +9,7 @@
 #import <Foundation/Foundation.h>
 @class CBLDatabase, CBLQuery;
 
-#if __has_feature(nullability) // Xcode 6.3+
-#pragma clang assume_nonnull begin
-#else
-#define nullable
-#define __nullable
-#define __nonnull
-#endif
+NS_ASSUME_NONNULL_BEGIN
 
 
 typedef enum {
@@ -108,6 +102,18 @@ FOUNDATION_EXTERN id CBLTextKey(NSString* text);
 /** Total number of rows in the view. The view's index will be updated if needed before returning
     the totalRows value. */
 @property (readonly) NSUInteger totalRows;
+
+/** Updates the view's index, then returns YES if the index changed or NO if it didn't.
+    Indexing scans all documents that have changed since the last time the index was updated.
+    The body of each document is passed to the view's map block, and any emitted rows are added
+    to the index. Any existing rows previously emitted by those documents, that weren't re-emitted
+    this time, are removed. */
+- (void) updateIndex;
+
+/** Asynchronously updates the view's index. This method returns immediately, after scheduling a
+    call to -updateIndex on a background thread; the onComplete callback block is called after 
+    indexing finishes. */
+- (void) updateIndexAsync: (void (^)())onComplete;
 
 /** Deletes the view's persistent index. It will be regenerated on the next query. */
 - (void) deleteIndex;
