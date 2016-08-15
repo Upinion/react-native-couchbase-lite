@@ -17,6 +17,7 @@ RCT_EXPORT_MODULE(CouchBase)
 NSString* const PUSH = @"couchBasePushEvent";
 NSString* const PULL = @"couchBasePullEvent";
 NSString* const DB_CHANGED = @"couchBaseDBEvent";
+NSString* const AUTH_ERROR = @"couchbBaseAuthError";
 
 - (id)init
 {
@@ -50,7 +51,8 @@ NSString* const DB_CHANGED = @"couchBaseDBEvent";
     return @{
              @"PUSH" : PUSH,
              @"PULL" : PULL,
-             @"DBChanged": DB_CHANGED
+             @"DBChanged": DB_CHANGED,
+             @"AuthError": AUTH_ERROR
              };
 }
 
@@ -201,6 +203,12 @@ withRemotePassword: (NSString*) remotePassword
                               @"totalChanges": [NSString stringWithFormat:@"%u", repl.changesCount]
                               };
         [self.bridge.eventDispatcher sendAppEventWithName:nameEvent body:map];
+    } else {
+        NSError *error = repl.lastError;
+        if (error != nil && error.code == 401) {
+            NSDictionary* mapError = @{};
+            [self.bridge.eventDispatcher sendAppEventWithName:AUTH_ERROR body:mapError];
+        }
     }
 }
 
