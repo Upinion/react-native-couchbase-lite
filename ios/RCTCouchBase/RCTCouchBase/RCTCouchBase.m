@@ -206,7 +206,9 @@ withRemotePassword: (NSString*) remotePassword
     } else {
         NSError *error = repl.lastError;
         if (error != nil && error.code == 401) {
-            NSDictionary* mapError = @{};
+            NSDictionary* mapError = @{
+                                       @"databaseName": repl.localDatabase.name,
+                                       };
             [self.bridge.eventDispatcher sendAppEventWithName:AUTH_ERROR body:mapError];
         }
     }
