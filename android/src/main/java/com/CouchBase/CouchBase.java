@@ -145,6 +145,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                 if (exception.getCode() == 401) {
                                     // Authentication error
                                     WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
                                 }
                             }
@@ -167,6 +168,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                 if (exception.getCode() == 401) {
                                     // Authentication error
                                     WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
                                 }
                             }
@@ -244,6 +246,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                 if (exception.getCode() == 401) {
                                     // Authentication error
                                     WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
                                 }
                             }
@@ -266,6 +269,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                 if (exception.getCode() == 401) {
                                     // Authentication error
                                     WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
                                 }
                             }
