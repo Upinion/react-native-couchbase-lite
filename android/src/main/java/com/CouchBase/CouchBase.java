@@ -30,6 +30,7 @@ import com.couchbase.lite.javascript.JavaScriptViewCompiler;
 import com.couchbase.lite.util.Log;
 import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.auth.AuthenticatorFactory;
+import com.couchbase.lite.replicator.RemoteRequestResponseException;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
     private static final String PUSH_EVENT_KEY = "couchBasePushEvent";
     private static final String PULL_EVENT_KEY = "couchBasePullEvent";
     private static final String DB_EVENT_KEY = "couchBaseDBEvent";
+    private static final String AUTH_ERROR_KEY = "couchbBaseAuthError";
     public static final String TAG = "CouchBase";
 
     /**
@@ -77,6 +79,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         constants.put("PUSH", PUSH_EVENT_KEY);
         constants.put("PULL", PULL_EVENT_KEY);
         constants.put("DBChanged", DB_EVENT_KEY);
+        constants.put("AuthError", AUTH_ERROR_KEY);
         return constants;
     }
     /**
@@ -135,21 +138,45 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 push.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        WritableMap eventM = Arguments.createMap();
-                        eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
-                        eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
-                        eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
-                        sendEvent(context, PUSH_EVENT_KEY, eventM);
+                         if (event.getError() != null) {
+                            Throwable lastError = event.getError();
+                            if (lastError instanceof RemoteRequestResponseException) {
+                                RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
+                                if (exception.getCode() == 401) {
+                                    // Authentication error
+                                    WritableMap eventError = Arguments.createMap();
+                                    sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }
+                            }
+                        } else {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                            eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
+                            sendEvent(context, PUSH_EVENT_KEY, eventM);
+                        }
                     }
                 });
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        WritableMap eventM = Arguments.createMap();
-                        eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
-                        eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
-                        eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
-                        sendEvent(context, PULL_EVENT_KEY, eventM);
+                         if (event.getError() != null) {
+                            Throwable lastError = event.getError();
+                            if (lastError instanceof RemoteRequestResponseException) {
+                                RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
+                                if (exception.getCode() == 401) {
+                                    // Authentication error
+                                    WritableMap eventError = Arguments.createMap();
+                                    sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }
+                            }
+                        } else {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                            eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
+                            sendEvent(context, PULL_EVENT_KEY, eventM);
+                        }
                     }
                 });
                 db.addChangeListener(new Database.ChangeListener() {
@@ -210,21 +237,45 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 push.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        WritableMap eventM = Arguments.createMap();
-                        eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
-                        eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
-                        eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
-                        sendEvent(context, PUSH_EVENT_KEY, eventM);
+                         if (event.getError() != null) {
+                            Throwable lastError = event.getError();
+                            if (lastError instanceof RemoteRequestResponseException) {
+                                RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
+                                if (exception.getCode() == 401) {
+                                    // Authentication error
+                                    WritableMap eventError = Arguments.createMap();
+                                    sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }
+                            }
+                        } else {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                            eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
+                            sendEvent(context, PUSH_EVENT_KEY, eventM);
+                        }
                     }
                 });
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        WritableMap eventM = Arguments.createMap();
-                        eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
-                        eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
-                        eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
-                        sendEvent(context, PULL_EVENT_KEY, eventM);
+                        if (event.getError() != null) {
+                            Throwable lastError = event.getError();
+                            if (lastError instanceof RemoteRequestResponseException) {
+                                RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
+                                if (exception.getCode() == 401) {
+                                    // Authentication error
+                                    WritableMap eventError = Arguments.createMap();
+                                    sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }
+                            }
+                        } else {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                            eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
+                            sendEvent(context, PULL_EVENT_KEY, eventM);
+                        }
                     }
                 });
                 db.addChangeListener(new Database.ChangeListener() {
