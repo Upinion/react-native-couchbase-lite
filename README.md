@@ -30,6 +30,13 @@ DeviceEventEmitter.addListener(CouchBase.PUSH ...
 ```bash
 DeviceEventEmitter.addListener(CouchBase.DBChanged ...
 ```
+
+* Authentication Error Event
+```bash
+// Use for detecting wrong credentials in remote database
+DeviceEventEmitter.addListener(CouchBase.AuthError ...
+```
+
 * Event DB Changed attributes
 ```bash
 event.databaseName          (String)    //Database related to event
@@ -40,6 +47,10 @@ event.id                    (String)    //ID of the document changed
 event.databaseName          (String)    //Database related to event
 event.completedChangesCount (Integer)   //Changes pulled/pushed at the moment
 event.changesCount          (Integer)   //Total of changes to pull/push
+```
+* Event AuthError attributes
+```bash
+event.databaseName          (String)    //Database related to event
 ```
 
 * Example of use
