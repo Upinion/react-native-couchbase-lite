@@ -48,7 +48,9 @@ public class CouchBase extends ReactContextBaseJavaModule {
     private static final String PUSH_EVENT_KEY = "couchBasePushEvent";
     private static final String PULL_EVENT_KEY = "couchBasePullEvent";
     private static final String DB_EVENT_KEY = "couchBaseDBEvent";
-    private static final String AUTH_ERROR_KEY = "couchbBaseAuthError";
+    private static final String AUTH_ERROR_KEY = "couchBaseAuthError";
+    private static final String OFFLINE_KEY = "couchBaseOffline";
+    private static final String ONLINE_KEY = "couchBaseOnline";
     public static final String TAG = "CouchBase";
 
     /**
@@ -80,6 +82,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
         constants.put("PULL", PULL_EVENT_KEY);
         constants.put("DBChanged", DB_EVENT_KEY);
         constants.put("AuthError", AUTH_ERROR_KEY);
+        constants.put("Offline", OFFLINE_KEY);
+        constants.put("Online", ONLINE_KEY);
         return constants;
     }
     /**
@@ -125,8 +129,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
         try {
             URL url = new URL(remoteURL);
             Database db = ss.getDatabase(databaseLocal);
-            Replication push = db.createPushReplication(url);
-            Replication pull = db.createPullReplication(url);
+            final Replication push = db.createPushReplication(url);
+            final Replication pull = db.createPullReplication(url);
             pull.setContinuous(true);
             push.setContinuous(true);
 
@@ -138,7 +142,19 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 push.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                         if (event.getError() != null) {
+                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
+                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        if (offline) {
+                            WritableMap eventOffline = Arguments.createMap();
+                            eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, OFFLINE_KEY, eventOffline);
+                        } else {
+                            WritableMap eventOnline = Arguments.createMap();
+                            eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, ONLINE_KEY, eventOnline);
+                        }
+
+                        if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
                                 RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
@@ -161,7 +177,19 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                         if (event.getError() != null) {
+                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
+                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        if (offline) {
+                            WritableMap eventOffline = Arguments.createMap();
+                            eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, OFFLINE_KEY, eventOffline);
+                        } else {
+                            WritableMap eventOnline = Arguments.createMap();
+                            eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, ONLINE_KEY, eventOnline);
+                        }
+
+                        if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
                                 RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
@@ -226,8 +254,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
         try {
             URL url = new URL(remoteURL);
             Database db = ss.getDatabase(databaseLocal);
-            Replication push = db.createPushReplication(url);
-            Replication pull = db.createPullReplication(url);
+            final Replication push = db.createPushReplication(url);
+            final Replication pull = db.createPullReplication(url);
             pull.setContinuous(true);
             push.setContinuous(true);
 
@@ -239,7 +267,19 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 push.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                         if (event.getError() != null) {
+                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
+                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        if (offline) {
+                            WritableMap eventOffline = Arguments.createMap();
+                            eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, OFFLINE_KEY, eventOffline);
+                        } else {
+                            WritableMap eventOnline = Arguments.createMap();
+                            eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, ONLINE_KEY, eventOnline);
+                        }
+
+                        if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
                                 RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
@@ -262,6 +302,18 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
+                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
+                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        if (offline) {
+                            WritableMap eventOffline = Arguments.createMap();
+                            eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, OFFLINE_KEY, eventOffline);
+                        } else {
+                            WritableMap eventOnline = Arguments.createMap();
+                            eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, ONLINE_KEY, eventOnline);
+                        }
+
                         if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
