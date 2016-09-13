@@ -18,6 +18,8 @@ NSString* const PUSH = @"couchBasePushEvent";
 NSString* const PULL = @"couchBasePullEvent";
 NSString* const DB_CHANGED = @"couchBaseDBEvent";
 NSString* const AUTH_ERROR = @"couchbBaseAuthError";
+NSString* const OFFLINE_KEY = @"couchBaseOffline";
+NSString* const ONLINE_KEY = @"couchBaseOnline";
 
 - (id)init
 {
@@ -52,7 +54,9 @@ NSString* const AUTH_ERROR = @"couchbBaseAuthError";
              @"PUSH" : PUSH,
              @"PULL" : PULL,
              @"DBChanged": DB_CHANGED,
-             @"AuthError": AUTH_ERROR
+             @"AuthError": AUTH_ERROR,
+             @"Offline": OFFLINE_KEY,
+             @"Online": ONLINE_KEY
              };
 }
 
@@ -193,6 +197,17 @@ withRemotePassword: (NSString*) remotePassword
 {
     CBLReplication* repl = notification.object;
     NSString* nameEvent = repl.pull? PULL : PUSH;
+    if (repl.status == kCBLReplicationOffline) {
+        NSDictionary* mapError = @{
+                                   @"databaseName": repl.localDatabase.name,
+                                   };
+        [self.bridge.eventDispatcher sendAppEventWithName:OFFLINE_KEY body:mapError];
+    } else {
+        NSDictionary* mapSuccess = @{
+                                   @"databaseName": repl.localDatabase.name,
+                                   };
+        [self.bridge.eventDispatcher sendAppEventWithName:ONLINE_KEY body:mapSuccess];
+    }
     if (repl.status == kCBLReplicationActive ||
         (repl.completedChangesCount > 0 && repl.completedChangesCount == repl.changesCount))
     {
