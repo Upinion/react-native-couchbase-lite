@@ -37,6 +37,13 @@ DeviceEventEmitter.addListener(CouchBase.DBChanged ...
 DeviceEventEmitter.addListener(CouchBase.AuthError ...
 ```
 
+* Online / Offline Events
+```bash
+// Use for detecting offline status
+DeviceEventEmitter.addListener(CouchBase.Online ...
+DeviceEventEmitter.addListener(CouchBase.Offline ...
+```
+
 * Event DB Changed attributes
 ```bash
 event.databaseName          (String)    //Database related to event
@@ -49,6 +56,10 @@ event.completedChangesCount (Integer)   //Changes pulled/pushed at the moment
 event.changesCount          (Integer)   //Total of changes to pull/push
 ```
 * Event AuthError attributes
+```bash
+event.databaseName          (String)    //Database related to event
+```
+* Event Online / Offline attributes
 ```bash
 event.databaseName          (String)    //Database related to event
 ```
