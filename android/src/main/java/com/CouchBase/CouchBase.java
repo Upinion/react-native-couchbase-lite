@@ -142,8 +142,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 push.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
-                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        boolean offline = push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE;
                         if (offline) {
                             WritableMap eventOffline = Arguments.createMap();
                             eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
@@ -177,8 +176,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
-                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        boolean offline = pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE;
                         if (offline) {
                             WritableMap eventOffline = Arguments.createMap();
                             eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
@@ -267,8 +265,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 push.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
-                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        boolean offline = push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE;
                         if (offline) {
                             WritableMap eventOffline = Arguments.createMap();
                             eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
@@ -302,8 +299,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        boolean offline = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE) ||
-                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE);
+                        boolean offline = pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE;
                         if (offline) {
                             WritableMap eventOffline = Arguments.createMap();
                             eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
