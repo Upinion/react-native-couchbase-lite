@@ -18,6 +18,7 @@ NSString* const PUSH = @"couchBasePushEvent";
 NSString* const PULL = @"couchBasePullEvent";
 NSString* const DB_CHANGED = @"couchBaseDBEvent";
 NSString* const AUTH_ERROR = @"couchbBaseAuthError";
+NSString* const NOT_FOUND = @"couchBaseNotFound";
 NSString* const OFFLINE_KEY = @"couchBaseOffline";
 NSString* const ONLINE_KEY = @"couchBaseOnline";
 
@@ -55,6 +56,7 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
              @"PULL" : PULL,
              @"DBChanged": DB_CHANGED,
              @"AuthError": AUTH_ERROR,
+             @"NotFound": NOT_FOUND,
              @"Offline": OFFLINE_KEY,
              @"Online": ONLINE_KEY
              };
@@ -218,14 +220,18 @@ withRemotePassword: (NSString*) remotePassword
                               @"totalChanges": [NSString stringWithFormat:@"%u", repl.changesCount]
                               };
         [self.bridge.eventDispatcher sendAppEventWithName:nameEvent body:map];
-    } else {
-        NSError *error = repl.lastError;
-        if (error != nil && error.code == 401) {
-            NSDictionary* mapError = @{
-                                       @"databaseName": repl.localDatabase.name,
-                                       };
-            [self.bridge.eventDispatcher sendAppEventWithName:AUTH_ERROR body:mapError];
-        }
+    }
+    NSError *error = repl.lastError;
+    if (error != nil && error.code == 401) {
+        NSDictionary* mapError = @{
+                                   @"databaseName": repl.localDatabase.name,
+                                   };
+        [self.bridge.eventDispatcher sendAppEventWithName:AUTH_ERROR body:mapError];
+    } else if (error != nil && error.code == 404) {
+        NSDictionary* mapError = @{
+                                   @"databaseName": repl.localDatabase.name,
+                                   };
+        [self.bridge.eventDispatcher sendAppEventWithName:NOT_FOUND body:mapError];
     }
 }
 
