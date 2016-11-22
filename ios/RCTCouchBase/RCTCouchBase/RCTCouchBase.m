@@ -24,7 +24,7 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
 - (id)init
 {
     self = [super init];
-    
+
     if (self) {
         CBLRegisterJSViewCompiler();
         manager = [CBLManager sharedInstance];
@@ -32,7 +32,7 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
         pulls = [[NSMutableDictionary alloc] init];
         pushes = [[NSMutableDictionary alloc] init];
         timeout = 0;
-        
+
         if (!manager) {
             NSLog(@"Cannot create Manager instance");
             exit(-1);
@@ -66,7 +66,7 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
         withPassword: (NSString * ) pass
         withCallback: (RCTResponseSenderBlock) onEnd
 {
-    
+
 initListener:
     // Set up the listener.
     listener = [[CBLListener alloc] initWithManager:manager port:port];
@@ -79,7 +79,7 @@ initListener:
     @try {
         NSError *err = nil;
         BOOL success = [listener start: &err];
-        
+
         // Error handler
         if (success) {
             NSLog(@"CouchBase running on %@", listener.URL);
@@ -87,7 +87,7 @@ initListener:
             if (onEnd != nil) {
                 onEnd(@[[NSNumber numberWithInt:listener.port]]);
             }
-            
+
         } else {
             NSLog(@"%@", err);
             //Close old databases
@@ -97,12 +97,12 @@ initListener:
             port++;
             goto initListener;
         }
-        
+
         // Exception handler
     } @catch (NSException *e) {
         NSLog(@"%@",e);
     }
-    
+
 }
 
 
@@ -113,34 +113,34 @@ withRemotePassword: (NSString*) remotePassword
         withEvents: (BOOL) events
       withCallback: (RCTResponseSenderBlock) onEnd
 {
-    
+
     if (listener == nil) {
         NSLog(@"Listener has not been initialised.");
         exit(-1);
     }
-    
+
     // Create the database.
     NSError *err;
     CBLDatabase* database = [manager databaseNamed:databaseLocal error:&err];
-    
+
     if (!database) {
         NSLog(@"%@", err);
         exit(-1);
     }
-    
-    
+
+
     // Establish the connection.
     NSURL *url = [NSURL URLWithString:remoteUrl];
     id<CBLAuthenticator> auth = [CBLAuthenticator
                                  basicAuthenticatorWithName:remoteUser
                                  password:remotePassword];
-    
+
     CBLReplication* push = [database createPushReplication: url];
     CBLReplication* pull = [database createPullReplication: url];
-    
+
     push.continuous = YES;
     pull.continuous = YES;
-    
+
     push.authenticator = auth;
     pull.authenticator = auth;
 
@@ -149,7 +149,7 @@ withRemotePassword: (NSString*) remotePassword
                                                                          @"poll": [NSNumber numberWithInteger:timeout],
                                                                          @"websocket": @false
                                                                          }];
-        
+
         pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
                                                                          @"poll": [NSNumber numberWithInteger:timeout],
                                                                          @"websocket": @false
@@ -157,20 +157,20 @@ withRemotePassword: (NSString*) remotePassword
     }
     // Add the events handler.
     if (events) {
-        
+
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:pull];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:push]; 
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:push];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDatabaseEvent:) name:kCBLDatabaseChangeNotification object:nil];
     }
-    
+
     [push start];
     [pull start];
-    
+
     [databases setObject:database forKey:databaseLocal];
-    
+
     [pushes setObject:push forKey:databaseLocal];
     [pulls  setObject:pull forKey:databaseLocal];
-    
+
     // Callback handler
     if (onEnd != nil) {
         NSArray *cb = @[];
@@ -183,7 +183,7 @@ withRemotePassword: (NSString*) remotePassword
 {
     CBLDatabase* database = notification.object;
     NSArray* changes = notification.userInfo[@"changes"];
-    
+
     for (CBLDatabaseChange* change in changes) {
         NSDictionary* map = @{
                               @"databaseName": database.name,
@@ -198,10 +198,20 @@ withRemotePassword: (NSString*) remotePassword
     CBLReplication* repl = notification.object;
     NSString* nameEvent = repl.pull? PULL : PUSH;
     if (repl.status == kCBLReplicationOffline) {
-        NSDictionary* mapError = @{
-                                   @"databaseName": repl.localDatabase.name,
-                                   };
-        [self.bridge.eventDispatcher sendAppEventWithName:OFFLINE_KEY body:mapError];
+        // when offline detected, wait 3 seconds then check again
+        double delayInSeconds = 3.0;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+          // if still offline
+          if (repl.status == kCBLReplicationOffline) {
+            // create error map with the database name
+            NSDictionary* mapError = @{
+                                       @"databaseName": repl.localDatabase.name,
+                                       };
+            // send the offline event
+            [self.bridge.eventDispatcher sendAppEventWithName:OFFLINE_KEY body:mapError];
+          }
+        });
     } else {
         NSDictionary* mapSuccess = @{
                                    @"databaseName": repl.localDatabase.name,
@@ -228,6 +238,7 @@ withRemotePassword: (NSString*) remotePassword
         }
     }
 }
+
 
 RCT_EXPORT_METHOD(serverLocal: (int) listenPort
                   withUserLocal: (NSString*) userLocal
@@ -257,7 +268,7 @@ RCT_EXPORT_METHOD(serverLocalRemote: (int) listenPort
              withUser:userLocal
          withPassword:passwordLocal
          withCallback:onEnd];
-    
+
     // Init sync.
     [self startSync:databaseLocal
       withRemoteUrl:remoteUrl
@@ -288,14 +299,14 @@ RCT_EXPORT_METHOD(serverRemote: (NSString*) databaseLocal
 
 RCT_EXPORT_METHOD(compact: (NSString*) databaseLocal)
 {
-    
+
     NSError* error;
     CBLDatabase* database = [databases objectForKey:databaseLocal];
     if (database == nil) {
         NSLog(@"Database does not exist.");
         exit(-1);
     }
-    
+
     BOOL success = [database compact:&error];
     if (!success) {
         NSLog(@"%@", error);
