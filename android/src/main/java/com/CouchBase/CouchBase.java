@@ -51,6 +51,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
     private static final String AUTH_ERROR_KEY = "couchBaseAuthError";
     private static final String OFFLINE_KEY = "couchBaseOffline";
     private static final String ONLINE_KEY = "couchBaseOnline";
+    private static final String NOT_FOUND_KEY = "couchBaseNotFound";
     public static final String TAG = "CouchBase";
 
     /**
@@ -84,6 +85,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         constants.put("AuthError", AUTH_ERROR_KEY);
         constants.put("Offline", OFFLINE_KEY);
         constants.put("Online", ONLINE_KEY);
+        constants.put("NotFound", NOT_FOUND_KEY);
         return constants;
     }
     /**
@@ -162,6 +164,11 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                     WritableMap eventError = Arguments.createMap();
                                     eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                } else if (exception.getCode() == 404){
+                                    // Database not found error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, NOT_FOUND_KEY, eventError);
                                 }
                             }
                         } else {
@@ -196,6 +203,11 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                     WritableMap eventError = Arguments.createMap();
                                     eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                } else if (exception.getCode() == 404){
+                                    // Database not found error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, NOT_FOUND_KEY, eventError);
                                 }
                             }
                         } else {
@@ -285,6 +297,11 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                     WritableMap eventError = Arguments.createMap();
                                     eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }else if (exception.getCode() == 404){
+                                    // Database not found error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, NOT_FOUND_KEY, eventError);
                                 }
                             }
                         } else {
@@ -319,6 +336,11 @@ public class CouchBase extends ReactContextBaseJavaModule {
                                     WritableMap eventError = Arguments.createMap();
                                     eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
                                     sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }else if (exception.getCode() == 404){
+                                    // Database not found error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, NOT_FOUND_KEY, eventError);
                                 }
                             }
                         } else {
