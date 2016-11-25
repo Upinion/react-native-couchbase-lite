@@ -33,6 +33,7 @@ import com.couchbase.lite.auth.AuthenticatorFactory;
 import com.couchbase.lite.replicator.RemoteRequestResponseException;
 
 import java.util.Map;
+import java.util.List;
 import java.util.HashMap;
 import java.io.IOException;
 import java.net.URL;
@@ -154,7 +155,6 @@ public class CouchBase extends ReactContextBaseJavaModule {
                             eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
                             sendEvent(context, ONLINE_KEY, eventOnline);
                         }
-
                         if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
@@ -193,7 +193,6 @@ public class CouchBase extends ReactContextBaseJavaModule {
                             eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
                             sendEvent(context, ONLINE_KEY, eventOnline);
                         }
-
                         if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
@@ -287,7 +286,6 @@ public class CouchBase extends ReactContextBaseJavaModule {
                             eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
                             sendEvent(context, ONLINE_KEY, eventOnline);
                         }
-
                         if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
@@ -326,7 +324,6 @@ public class CouchBase extends ReactContextBaseJavaModule {
                             eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
                             sendEvent(context, ONLINE_KEY, eventOnline);
                         }
-
                         if (event.getError() != null) {
                             Throwable lastError = event.getError();
                             if (lastError instanceof RemoteRequestResponseException) {
@@ -398,6 +395,33 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Function to be shared with React-native, it restarts push replications in order to check for 404
+     * @param  databaseLocal    String      database for local server
+     * */
+    @ReactMethod
+    public void refreshReplication(String databaseLocal) {
+        Manager ss = this.managerServer;
+
+        if(ss == null)
+            throw new JavascriptException("CouchBase local server needs to be started first");
+        if(databaseLocal == null)
+            throw new JavascriptException("CouchBase Server bad arguments");
+        try {
+            Database db = ss.getDatabase(databaseLocal);
+            List<Replication> replications = db.getActiveReplications();
+            for (Replication replication : replications) {
+                if (!replication.isPull() && replication.isRunning() &&
+                        replication.getStatus() == Replication.ReplicationStatus.REPLICATION_IDLE) {
+                    replication.restart();
+                }
+            }
+        }catch(Exception e){
+            throw new JavascriptException(e.getMessage());
+        }
+
+    }
+
+    /**
      * Enable debug log for CBL
      * @param  debug_mode      boolean      debug module for develop: true for VERBOSE log, false for Default log level.
      * */
@@ -405,6 +429,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
     public void enableLog(boolean debug_mode) {
             isDebug = new Boolean(debug_mode);
     }
+
 
     /**
      * Private functions to create couchbase server
@@ -466,3 +491,4 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 .emit(eventName, params);
     }
 }
+
