@@ -37,6 +37,12 @@ DeviceEventEmitter.addListener(CouchBase.DBChanged ...
 DeviceEventEmitter.addListener(CouchBase.AuthError ...
 ```
 
+* Remote Not Found Error Event
+```bash
+// Use for detecting not existing remote database
+DeviceEventEmitter.addListener(CouchBase.NotFound ...
+```
+
 * Online / Offline Events
 ```bash
 // Use for detecting offline status
@@ -56,6 +62,10 @@ event.completedChangesCount (Integer)   //Changes pulled/pushed at the moment
 event.changesCount          (Integer)   //Total of changes to pull/push
 ```
 * Event AuthError attributes
+```bash
+event.databaseName          (String)    //Database related to event
+```
+* Event NotFound attributes
 ```bash
 event.databaseName          (String)    //Database related to event
 ```
@@ -93,6 +103,15 @@ CouchBase.closeDatabase(string database, Callback onEnd)
  * IMPORTANT: This function is only available in IOS
  * Set timeout for pull or push requests
  * @param  timeout      integer     timeout for requests in ms
+ */
+CouchBase.setTimeout(integer timeout)
+```
+### Resfresh PUSH Replications (ONLY Android)
+```java
+ /**
+ * IMPORTANT: This function is only available in Android
+ * Used to triggers events like not existing Database after replaction started.
+ * @param  database     string      name of database
  */
 CouchBase.setTimeout(integer timeout)
 ```
