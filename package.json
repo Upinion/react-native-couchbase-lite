@@ -11,49 +11,64 @@
     [
       "react-native-couchbase@^1.1.6",
       "/Users/juldiadia/Work/mobapp"
+    ],
+    [
+      {
+        "raw": "react-native-couchbase@^1.3.4",
+        "scope": null,
+        "escapedName": "react-native-couchbase",
+        "name": "react-native-couchbase",
+        "rawSpec": "^1.3.4",
+        "spec": ">=1.3.4 <2.0.0",
+        "type": "range"
+      },
+      "/Users/albertommr/Documents/upinion/mobapp"
     ]
   ],
-  "_from": "react-native-couchbase@>=1.1.6 <2.0.0",
-  "_id": "react-native-couchbase@1.1.6",
+  "_from": "react-native-couchbase@^1.3.4",
+  "_id": "react-native-couchbase@1.3.4",
   "_inCache": true,
   "_installable": true,
   "_location": "/react-native-couchbase",
-  "_nodeVersion": "5.10.1",
+  "_nodeVersion": "6.3.1",
   "_npmOperationalInternal": {
-    "host": "packages-12-west.internal.npmjs.com",
-    "tmp": "tmp/react-native-couchbase-1.1.6.tgz_1464269217512_0.16591834975406528"
+    "host": "packages-18-east.internal.npmjs.com",
+    "tmp": "tmp/react-native-couchbase-1.3.4.tgz_1480087934472_0.32343303482048213"
   },
   "_npmUser": {
-    "email": "julian.diaz@upinion.com",
-    "name": "juldiadia"
+    "name": "juldiadia",
+    "email": "julian.diaz@upinion.com"
   },
-  "_npmVersion": "3.8.3",
+  "_npmVersion": "3.10.6",
   "_phantomChildren": {},
   "_requested": {
-    "name": "react-native-couchbase",
-    "raw": "react-native-couchbase@^1.1.6",
-    "rawSpec": "^1.1.6",
+    "raw": "react-native-couchbase@^1.3.4",
     "scope": null,
-    "spec": ">=1.1.6 <2.0.0",
+    "escapedName": "react-native-couchbase",
+    "name": "react-native-couchbase",
+    "rawSpec": "^1.3.4",
+    "spec": ">=1.3.4 <2.0.0",
     "type": "range"
   },
   "_requiredBy": [
     "/"
   ],
+  "_resolved": "https://registry.npmjs.org/react-native-couchbase/-/react-native-couchbase-1.3.4.tgz",
+  "_shasum": "474f6c1100b2955bbac5be56222d6297d9f30787",
   "_shrinkwrap": null,
-  "_spec": "react-native-couchbase@^1.1.6",
-  "_where": "/Users/juldiadia/Work/mobapp",
+  "_spec": "react-native-couchbase@^1.3.4",
+  "_where": "/Users/albertommr/Documents/upinion/mobapp",
   "author": {
-    "email": "julian.diaz@upinion.com",
-    "name": "JDiaz"
+    "name": "JDiaz",
+    "email": "julian.diaz@upinion.com"
   },
   "bugs": {
     "url": "https://github.com/Upinion/react-native-couchbase-lite/issues"
   },
   "contributors": [
     {
-      "email": "alberto.martinez@upinion.com",
-      "name": "Alberto Mtnz"
+      "name": "Alberto Mtnz",
+      "email": "alberto.martinez@upinion.com"
     }
   ],
   "dependencies": {},
@@ -61,8 +76,8 @@
   "devDependencies": {},
   "directories": {},
   "dist": {
-    "shasum": "598de41e18abf1ff6225ab7c019507c73b8d124a",
-    "tarball": "https://registry.npmjs.org/react-native-couchbase/-/react-native-couchbase-1.1.6.tgz"
+    "shasum": "474f6c1100b2955bbac5be56222d6297d9f30787",
+    "tarball": "https://registry.npmjs.org/react-native-couchbase/-/react-native-couchbase-1.3.4.tgz"
   },
   "gitHead": "f089e20d614ecc03a70314efe350fac7614eed2f",
   "homepage": "https://github.com/Upinion/react-native-couchbase-lite#readme",
@@ -77,8 +92,8 @@
   "main": "index.js",
   "maintainers": [
     {
-      "email": "julian.diaz@upinion.com",
-      "name": "juldiadia"
+      "name": "juldiadia",
+      "email": "julian.diaz@upinion.com"
     }
   ],
   "name": "react-native-couchbase",
