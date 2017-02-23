@@ -31,12 +31,15 @@ import com.couchbase.lite.util.Log;
 import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.auth.AuthenticatorFactory;
 import com.couchbase.lite.replicator.RemoteRequestResponseException;
+import com.couchbase.lite.internal.RevisionInternal;
 
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.io.IOException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CouchBase extends ReactContextBaseJavaModule {
 
@@ -490,5 +493,99 @@ public class CouchBase extends ReactContextBaseJavaModule {
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(eventName, params);
     }
+
+
+    // ANDROID INSTRUCTIONS
+    // 1. npm install  (just in case)
+    // 2. react-native run-android': for installing the sdk on your phone
+    // 3. react-native start: for starting the development server.
+    // 
+    // Whenever you reinstall an app you have to tell the phone where the development server
+    //(in your machine) is. Shake the phone, Dev settings, Debug server host & port for device. [ipaddress]:8081
+    //
+    // USEFUL LINKS
+    // https://github.com/couchbase/couchbase-lite-java-core/blob/master/src/main/java/com/couchbase/lite/Database.java
+    // 
+    // TODO: implement Promises and test the getDocument and GetAll. Lastly, implement getView (good luck sir)
+    
+    /**
+     * TODO: implement Promises
+     */
+    private void getDocument(String databaseLocal, String docId) {
+        Manager ss = this.managerServer;
+        Database db = ss.getDatabase(databaseLocal);
+        
+        if (ss == null)
+            throw new JavascriptException("CouchBase local server needs to be started first");
+        if (!(databaseLocal != null && remoteURL != null && remoteUser != null && remotePassword != null))
+            throw new JavascriptException("CouchBase Server bad arguments");
+        
+        promise.resolve(getDocumentFromId(docId));
+     }
+
+    /**
+     * TODO: implement Promises
+     */
+    private void getAll(String databaseLocal, Array<String> docIds) {
+        Manager ss = this.managerServer;
+        Database db = ss.getDatabase(databaseLocal);
+        
+        if (ss == null)
+            throw new JavascriptException("CouchBase local server needs to be started first");
+        if (!(databaseLocal != null && remoteURL != null && remoteUser != null && remotePassword != null))
+            throw new JavascriptException("CouchBase Server bad arguments");
+        
+        ArrayList<String> results = new ArrayList<String>();
+        if (docIds === null || docIds.length === 0) {
+            Query query = database.createAllDocumentsQuery();
+            QueryEnumerator qResults = query.run();
+
+            if (qResults === null) {
+                throw new JavascriptException("The query could not be completed");
+            }
+            Map<String, Object> properties = null;
+            for (QueryRow row in qResults) {
+                properties = row.getDocument().getProperties()
+                if (properties !== null) {
+                    results.add(properties);
+                }
+            }
+        } else {
+            for (String docId in docIds) {
+                results.add(getDocumentFromId(docId));
+            }
+        }
+        promise.resolve(results);
+    }
+    
+    /**
+     * TODO
+     */
+    private void getView(String databaseLocal, Array<String> docIds) {
+        
+    }
+
+     private Map<String, Object> getDocumentFromId(string docId) {
+        // Return empty object if document not found
+        Map<String, Object> document = new HashMap<String, Object>();
+
+        // We need to check if it is a _local document or a normal document.
+        Pattern pattern = Pattern.compile("^_local/(.+)");
+        Matcher matcher = pattern.matcher(docId);
+       
+        if (matcher.find()){
+            String localDocId = matcher.group(1); //TODO maybe safer to get from that position till end instead?
+            Map<String, Object> doc = db.getExistingLocalDocument(localDocId);
+            document = doc !== null ? doc : document;
+        } else {
+            RevisionInternal revInt = db.getExistingDocument(localDocId);
+            document = (revInt !== null && revInt.getProperties() !== null) ? revInt.getProperties() : document;
+        }
+        
+        return document;
+    }
+
 }
+
+
 
