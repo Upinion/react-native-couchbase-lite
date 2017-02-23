@@ -8,6 +8,7 @@ import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
@@ -494,31 +495,93 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 .emit(eventName, params);
     }
 
+    private static WritableMap mapToWritableMap(Map <String, Object> map) {
+        WritableMap wm = Arguments.createMap();
+        for (Object entry : map) {
+            if (entry instanceof boolean) {
+                wm.putBoolean(entry.getKey(), entry);
+            } else if (entry instanceof int) {
+                wm.putInt(entry.getKey(), entry);
+            } else if (entry instanceof double || entry instanceof float) {
+                wm.putDouble(entry.getKey(), entry);
+            } else if (entry instanceof String) {
+                wm.putString(entry.getKey(), entry);
+            } else if (entry instanceof Map) {
+                wm.putMap(entry.getKey(), CouchBase.mapToWritableMap(entry));
+            } else {
+                WritableArray array = CouchBase.arrayToWritableMap(entry);
+                if (array != null) {
+                    wm.putArray(entry.getKey(), array);
+                } else {
+                    wm.putNull(entry.getKey());
+                }
+            }
+        }
+        return wm;
+    }
 
-    // ANDROID INSTRUCTIONS
-    // 1. npm install  (just in case)
-    // 2. react-native run-android': for installing the sdk on your phone
-    // 3. react-native start: for starting the development server.
-    // 
-    // Whenever you reinstall an app you have to tell the phone where the development server
-    //(in your machine) is. Shake the phone, Dev settings, Debug server host & port for device. [ipaddress]:8081
-    //
-    // USEFUL LINKS
-    // https://github.com/couchbase/couchbase-lite-java-core/blob/master/src/main/java/com/couchbase/lite/Database.java
-    // 
-    // TODO: implement Promises and test the getDocument and GetAll. Lastly, implement getView (good luck sir)
-    
-    /**
-     * TODO: implement Promises
-     */
-    private void getDocument(String databaseLocal, String docId) {
-        Manager ss = this.managerServer;
-        Database db = ss.getDatabase(databaseLocal);
+    private static WritableArray arrayToWritableMap(Array<Object> array) {
+        WritableArray wa = Arguments.createArray();
+        if (array instanceof String[]) {
+            for (String v: (String[]) array) {
+                wa.pushString(v);
+            }
+        } else if (array instanceof Map<String, Object>[]) {
+            for (Map<String, Object> v: (Map<String, Object>[])  array) {
+                wa.pushMap(CouchBase.mapToWritableMap(array));
+            }
+        } else if (array instanceof int[]) {
+            for (int v: (int[]) array) {
+                wa.pushInt(v);
+            }
+        } else if (array instanceof float[]) {
+            for (float v: (float[]) array) {
+                wa.pushDouble(v);
+            }
+        } else if (array instanceof double[]) {
+            for (double v: (double[]) array) {
+                wa.pushDouble(v);
+            }
+        } else if (array instanceof boolean[]) {
+            for (boolean v: (boolean[]) array) {
+                wa.pushBoolean(v);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @ReactMethod
+    public void getDocument(String database, String docId, Promise promise) {
+        try {
+            Manager ss = this.startCBLite();
+            Database db = ss.getDatabase(database);
+            Document doc;
+
+            Pattern pattern = Pattern.compile("^_local/(.+)");
+            Matcher matcher = pattern.matcher(docId);
+
+
+            // If it matches, it is a local document.
+            if (matcher.find()) {
+                String localDocId = matcher.group(0);
+                doc = db.getExistingLocalDocument(localDocId);
+            } else {
+                doc = db.getExistingDocument(docId);
+            }
+
+            if (doc != null) {
+                Map<String, Object> properties = doc.getProperties();
+                WritableMap result = CouchBase.mapToWritableMap(properties);
+
+                promise.resolve(result);
+            } else {
+                promise.resolve(Arguments.createMap());
+            }
+        } catch (IOException e) {
+            promise.reject("NOT_OPENED", e);
+        }
         
-        if (ss == null)
-            throw new JavascriptException("CouchBase local server needs to be started first");
-        if (!(databaseLocal != null && remoteURL != null && remoteUser != null && remotePassword != null))
-            throw new JavascriptException("CouchBase Server bad arguments");
         
         promise.resolve(getDocumentFromId(docId));
      }
@@ -527,14 +590,15 @@ public class CouchBase extends ReactContextBaseJavaModule {
      * TODO: implement Promises
      */
     private void getAll(String databaseLocal, Array<String> docIds) {
-        Manager ss = this.managerServer;
-        Database db = ss.getDatabase(databaseLocal);
+/*
+        try {
+            Manager manager = new Manager(new AndroidContext());
+            Database db = ss.getDatabase(databaseLocal);
+        } catch (IOException e) {
+            throw new JavascriptException(e.getMessage());
+        }
         
-        if (ss == null)
-            throw new JavascriptException("CouchBase local server needs to be started first");
-        if (!(databaseLocal != null && remoteURL != null && remoteUser != null && remotePassword != null))
-            throw new JavascriptException("CouchBase Server bad arguments");
-        
+                
         ArrayList<String> results = new ArrayList<String>();
         if (docIds === null || docIds.length === 0) {
             Query query = database.createAllDocumentsQuery();
@@ -555,7 +619,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 results.add(getDocumentFromId(docId));
             }
         }
-        promise.resolve(results);
+        promise.resolve(results);*/
     }
     
     /**
@@ -565,7 +629,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         
     }
 
-     private Map<String, Object> getDocumentFromId(string docId) {
+    private Map<String, Object> getDocumentFromId(string docId) {/*
         // Return empty object if document not found
         Map<String, Object> document = new HashMap<String, Object>();
 
@@ -583,7 +647,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         }
         
         return document;
-    }
+   */ }
 
 }
 
