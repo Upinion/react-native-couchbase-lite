@@ -3,6 +3,10 @@ package com.upinion.CouchBase;
 import android.content.Intent;
 import android.content.Context;
 
+import com.couchbase.lite.Document;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -11,6 +15,7 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.JavascriptException;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -34,6 +39,9 @@ import com.couchbase.lite.auth.AuthenticatorFactory;
 import com.couchbase.lite.replicator.RemoteRequestResponseException;
 import com.couchbase.lite.internal.RevisionInternal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
@@ -497,19 +505,21 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
     private static WritableMap mapToWritableMap(Map <String, Object> map) {
         WritableMap wm = Arguments.createMap();
-        for (Object entry : map) {
-            if (entry instanceof boolean) {
-                wm.putBoolean(entry.getKey(), entry);
-            } else if (entry instanceof int) {
-                wm.putInt(entry.getKey(), entry);
-            } else if (entry instanceof double || entry instanceof float) {
-                wm.putDouble(entry.getKey(), entry);
-            } else if (entry instanceof String) {
-                wm.putString(entry.getKey(), entry);
-            } else if (entry instanceof Map) {
-                wm.putMap(entry.getKey(), CouchBase.mapToWritableMap(entry));
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            if (entry.getValue() instanceof Boolean) {
+                wm.putBoolean(entry.getKey(), ((Boolean) entry.getValue()).booleanValue());
+            } else if (entry.getValue() instanceof Integer) {
+                wm.putInt(entry.getKey(), ((Integer) entry.getValue()).intValue());
+            } else if (entry.getValue() instanceof Double) {
+                wm.putDouble(entry.getKey(), ((Double) entry.getValue()).doubleValue());
+            } else if (entry.getValue() instanceof Float){
+                wm.putDouble(entry.getKey(), ((Float) entry.getValue()).doubleValue());
+            } else if (entry.getValue() instanceof String) {
+                wm.putString(entry.getKey(), ((String) entry.getValue()));
+            } else if (entry instanceof Map<?, ?>) {
+                wm.putMap(entry.getKey(), CouchBase.mapToWritableMap((Map<String, Object>) entry.getValue()));
             } else {
-                WritableArray array = CouchBase.arrayToWritableMap(entry);
+                WritableArray array = CouchBase.arrayToWritableMap((Object[]) entry.getValue());
                 if (array != null) {
                     wm.putArray(entry.getKey(), array);
                 } else {
@@ -520,31 +530,32 @@ public class CouchBase extends ReactContextBaseJavaModule {
         return wm;
     }
 
-    private static WritableArray arrayToWritableMap(Array<Object> array) {
+    private static WritableArray arrayToWritableMap(Object[] array) {
         WritableArray wa = Arguments.createArray();
         if (array instanceof String[]) {
             for (String v: (String[]) array) {
                 wa.pushString(v);
             }
-        } else if (array instanceof Map<String, Object>[]) {
+
+        } else if (array instanceof Map<?, ?>[]) {
             for (Map<String, Object> v: (Map<String, Object>[])  array) {
-                wa.pushMap(CouchBase.mapToWritableMap(array));
+                wa.pushMap(CouchBase.mapToWritableMap(v));
             }
-        } else if (array instanceof int[]) {
-            for (int v: (int[]) array) {
-                wa.pushInt(v);
+        } else if (array instanceof Integer[]) {
+            for (Integer v : (Integer[]) array) {
+                wa.pushInt(v.intValue());
             }
-        } else if (array instanceof float[]) {
-            for (float v: (float[]) array) {
-                wa.pushDouble(v);
+        } else if (array instanceof Float[]) {
+            for (Float v: (Float[]) array) {
+                wa.pushDouble(v.doubleValue());
             }
-        } else if (array instanceof double[]) {
-            for (double v: (double[]) array) {
-                wa.pushDouble(v);
+        } else if (array instanceof Double[]) {
+            for (Double v: (Double[]) array) {
+                wa.pushDouble(v.doubleValue());
             }
-        } else if (array instanceof boolean[]) {
-            for (boolean v: (boolean[]) array) {
-                wa.pushBoolean(v);
+        } else if (array instanceof Boolean[]) {
+            for (Boolean v: (Boolean[]) array) {
+                wa.pushBoolean(v.booleanValue());
             }
         } else {
             return null;
@@ -556,22 +567,23 @@ public class CouchBase extends ReactContextBaseJavaModule {
         try {
             Manager ss = this.startCBLite();
             Database db = ss.getDatabase(database);
-            Document doc;
+            Map<String, Object> properties = null;
 
             Pattern pattern = Pattern.compile("^_local/(.+)");
             Matcher matcher = pattern.matcher(docId);
 
-
             // If it matches, it is a local document.
             if (matcher.find()) {
                 String localDocId = matcher.group(0);
-                doc = db.getExistingLocalDocument(localDocId);
+                 properties = db.getExistingLocalDocument(localDocId);
             } else {
-                doc = db.getExistingDocument(docId);
+                Document doc = db.getExistingDocument(docId);
+                if (doc != null) {
+                    properties = doc.getProperties();
+                }
             }
 
-            if (doc != null) {
-                Map<String, Object> properties = doc.getProperties();
+            if (properties != null) {
                 WritableMap result = CouchBase.mapToWritableMap(properties);
 
                 promise.resolve(result);
@@ -580,75 +592,77 @@ public class CouchBase extends ReactContextBaseJavaModule {
             }
         } catch (IOException e) {
             promise.reject("NOT_OPENED", e);
+        } catch (CouchbaseLiteException e) {
+            promise.reject("COUCHBASE_ERROR", e);
         }
-        
-        
-        promise.resolve(getDocumentFromId(docId));
-     }
+    }
 
-    /**
-     * TODO: implement Promises
-     */
-    private void getAll(String databaseLocal, Array<String> docIds) {
-/*
+
+    @ReactMethod
+    private void getAll(String database, String[] docIds, Promise promise) {
         try {
-            Manager manager = new Manager(new AndroidContext());
-            Database db = ss.getDatabase(databaseLocal);
-        } catch (IOException e) {
-            throw new JavascriptException(e.getMessage());
-        }
-        
-                
-        ArrayList<String> results = new ArrayList<String>();
-        if (docIds === null || docIds.length === 0) {
-            Query query = database.createAllDocumentsQuery();
-            QueryEnumerator qResults = query.run();
+            Manager ss = this.startCBLite();
+            Database db = ss.getDatabase(database);
+            List<WritableMap> results = new ArrayList<WritableMap>();
 
-            if (qResults === null) {
-                throw new JavascriptException("The query could not be completed");
-            }
-            Map<String, Object> properties = null;
-            for (QueryRow row in qResults) {
-                properties = row.getDocument().getProperties()
-                if (properties !== null) {
-                    results.add(properties);
+            if (docIds == null || docIds.length == 0) {
+                Query query = db.createAllDocumentsQuery();
+                query.setAllDocsMode(Query.AllDocsMode.ALL_DOCS);
+
+                QueryEnumerator queryResults = query.run();
+
+                Iterator<QueryRow> it = queryResults;
+                while (it.hasNext()) {
+                    QueryRow row = it.next();
+                    if (row.getDocumentProperties() != null) {
+                        results.add(CouchBase.mapToWritableMap(row.getDocumentProperties()));
+                    }
+                }
+            } else {
+                Map<String, Object> properties = null;
+                Pattern pattern = Pattern.compile("^_local/(.+)");
+
+                for (String docId : docIds) {
+                    Matcher matcher = pattern.matcher(docId);
+
+                    // If it matches, it is a local document.
+                    if (matcher.find()) {
+                        String localDocId = matcher.group(0);
+                        properties = db.getExistingLocalDocument(localDocId);
+                    } else {
+                        Document doc = db.getExistingDocument(docId);
+                        if (doc != null) {
+                            properties = doc.getProperties();
+                        }
+                    }
+
+                    if (properties != null) {
+                        results.add(CouchBase.mapToWritableMap(properties));
+                    }
                 }
             }
-        } else {
-            for (String docId in docIds) {
-                results.add(getDocumentFromId(docId));
-            }
+
+            promise.resolve((WritableMap[]) results.toArray());
+        } catch (IOException e) {
+            promise.reject("NOT_OPENED", e);
+        } catch (CouchbaseLiteException e) {
+            promise.reject("COUCHBASE_ERROR", e);
         }
-        promise.resolve(results);*/
     }
     
-    /**
-     * TODO
-     */
-    private void getView(String databaseLocal, Array<String> docIds) {
-        
-    }
+    @ReactMethod
+    private void getView(String database, String design, String viewName, Map<String, Object> params, String[] docIds, Promise promise) {
+        try {
+            Manager ss = this.startCBLite();
+            Database db = ss.getDatabase(database);
 
-    private Map<String, Object> getDocumentFromId(string docId) {/*
-        // Return empty object if document not found
-        Map<String, Object> document = new HashMap<String, Object>();
-
-        // We need to check if it is a _local document or a normal document.
-        Pattern pattern = Pattern.compile("^_local/(.+)");
-        Matcher matcher = pattern.matcher(docId);
-       
-        if (matcher.find()){
-            String localDocId = matcher.group(1); //TODO maybe safer to get from that position till end instead?
-            Map<String, Object> doc = db.getExistingLocalDocument(localDocId);
-            document = doc !== null ? doc : document;
-        } else {
-            RevisionInternal revInt = db.getExistingDocument(localDocId);
-            document = (revInt !== null && revInt.getProperties() !== null) ? revInt.getProperties() : document;
+            db.getExistingView()
+        } catch (IOException e) {
+            promise.reject("NOT_OPENED", e);
+        } catch (CouchbaseLiteException e) {
+            promise.reject("COUCHBASE_ERROR", e);
         }
-        
-        return document;
-   */ }
-
+    }
 }
 
 
