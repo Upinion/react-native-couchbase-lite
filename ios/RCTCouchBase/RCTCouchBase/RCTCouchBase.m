@@ -436,7 +436,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
                   withDesign: (NSString*) design
                   withView: (NSString*) viewName
                   withParams: (NSDictionary*) params
-                  withKeys: (NSDictionary*) keys
+                  withKeys: (NSArray*) keys
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
