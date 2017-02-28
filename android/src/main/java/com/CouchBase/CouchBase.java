@@ -4,9 +4,12 @@ import android.content.Intent;
 import android.content.Context;
 
 import com.couchbase.lite.Document;
+import com.couchbase.lite.Mapper;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
+import com.couchbase.lite.Reducer;
+import com.couchbase.lite.ViewCompiler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -516,8 +519,12 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 wm.putDouble(entry.getKey(), ((Float) entry.getValue()).doubleValue());
             } else if (entry.getValue() instanceof String) {
                 wm.putString(entry.getKey(), ((String) entry.getValue()));
-            } else if (entry instanceof Map<?, ?>) {
+            } else if (entry.getValue() instanceof Map<?, ?>) {
                 wm.putMap(entry.getKey(), CouchBase.mapToWritableMap((Map<String, Object>) entry.getValue()));
+            } else if (entry.getValue() instanceof WritableMap) {
+                wm.putMap(entry.getKey(), (WritableMap) entry.getValue());
+            } else if (entry.getValue() instanceof WritableArray) {
+                wm.putArray(entry.getKey(), (WritableArray) entry.getValue());
             } else {
                 WritableArray array = CouchBase.arrayToWritableMap((Object[]) entry.getValue());
                 if (array != null) {
@@ -538,8 +545,20 @@ public class CouchBase extends ReactContextBaseJavaModule {
             }
 
         } else if (array instanceof Map<?, ?>[]) {
-            for (Map<String, Object> v: (Map<String, Object>[])  array) {
+            for (Map<String, Object> v : (Map<String, Object>[]) array) {
                 wa.pushMap(CouchBase.mapToWritableMap(v));
+            }
+        } else if (array instanceof WritableMap[]) {
+            for (WritableMap v : (WritableMap[]) array) {
+                wa.pushMap(v);
+            }
+        } else if (array instanceof Object[][]) {
+            for (Object[] v : (Object[][]) array) {
+                wa.pushArray(arrayToWritableMap(v));
+            }
+        } else if (array instanceof WritableArray[]) {
+            for (WritableArray v : (WritableArray[]) array) {
+                wa.pushArray(v);
             }
         } else if (array instanceof Integer[]) {
             for (Integer v : (Integer[]) array) {
@@ -560,6 +579,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         } else {
             return null;
         }
+        return wa;
     }
 
     @ReactMethod
@@ -609,9 +629,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 Query query = db.createAllDocumentsQuery();
                 query.setAllDocsMode(Query.AllDocsMode.ALL_DOCS);
 
-                QueryEnumerator queryResults = query.run();
-
-                Iterator<QueryRow> it = queryResults;
+                Iterator<QueryRow> it = query.run();
                 while (it.hasNext()) {
                     QueryRow row = it.next();
                     if (row.getDocumentProperties() != null) {
@@ -651,12 +669,72 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
     
     @ReactMethod
-    private void getView(String database, String design, String viewName, Map<String, Object> params, String[] docIds, Promise promise) {
+    private void getView(String database, String design, String viewName, Map<String, Object> params, Object[] docIds, Promise promise) {
         try {
             Manager ss = this.startCBLite();
             Database db = ss.getDatabase(database);
 
-            db.getExistingView()
+            Document viewDoc = db.getExistingDocument("_design/".concat(design));
+            if (viewDoc == null) {
+                promise.reject("NOT_FOUND", "The document _design/" + design + " could not be found.");
+            }
+
+            Map<String, Object> views = (Map <String, Object>) viewDoc.getProperty("views");
+            Map<String, Object> viewDefinition = (Map <String, Object>) views.get(viewName);
+
+            if (viewDefinition == null) {
+                promise.reject("NOT_FOUND", "The view " + viewName + " could not be found.");
+            }
+
+            Mapper mapper = View.getCompiler().compileMap((String) viewDefinition.get("map"), "javascript");
+            if (mapper == null) {
+                promise.reject("COMPILE_ERROR", "The map function of " + viewName + "could not be compiled.");
+            }
+
+            View view = db.getExistingView(viewName);
+            if (view != null) view.delete();
+            view = db.getView(viewName);
+
+            if (viewDefinition.containsKey("reduce")) {
+                Reducer reducer = View.getCompiler().compileReduce((String) viewDefinition.get("reduce"), "javascript");
+                if (reducer == null) {
+                    promise.reject("COMPILE_ERROR", "The reduce function of " + viewName + "could not be compiled.");
+                }
+                view.setMapReduce(mapper, reducer, "1");
+            } else {
+                view.setMap(mapper, "1");
+            }
+
+            Query query = view.createQuery();
+
+            if (params.containsKey("startkey")) query.setStartKey(params.get("startkey"));
+            if (params.containsKey("endkey")) query.setEndKey(params.get("endkey"));
+            if (params.containsKey("descending")) query.setDescending((Boolean) params.get("descending"));
+            if (params.containsKey("limit")) query.setLimit((Integer) params.get("limit"));
+            if (params.containsKey("skip")) query.setSkip((Integer) params.get("skip"));
+            if (params.containsKey("group")) query.setGroupLevel((Integer) params.get("group"));
+            if (docIds != null && docIds.length > 0) query.setKeys(Arrays.asList(docIds));
+
+            QueryEnumerator it = query.run();
+            WritableArray results = Arguments.createArray();
+            while (it.hasNext()) {
+                QueryRow row = it.next();
+                if (row.getDocumentProperties() != null) {
+                    results.pushMap(CouchBase.mapToWritableMap(row.getDocumentProperties()));
+                } else if (viewDefinition.containsKey("reduce")) {
+                    WritableMap m = Arguments.createMap();
+                    m.putString("key", (String) row.getKey());
+                    m.putMap("value", CouchBase.mapToWritableMap((Map) row.getValue()));
+                    results.pushMap(m);
+                }
+            }
+
+            WritableMap ret = Arguments.createMap();
+            ret.putArray("elements", results);
+            if (params.containsKey("update_seq") && params.get("update_seq").equals(true)) {
+                ret.putInt("update_seq", Long.valueOf(it.getSequenceNumber()).intValue());
+            }
+
         } catch (IOException e) {
             promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {

@@ -453,7 +453,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     CBLDocument* viewsDoc = [database existingDocumentWithID:[NSString stringWithFormat:@"_design/%@", design]];
     if (viewsDoc == nil || viewsDoc.properties == nil || [viewsDoc.properties objectForKey:@"views"] == nil) {
         NSLog(@"The design file '%@' could not be found", design);
-        reject(@"not_found", @"Teh design file could not be found", [NSNull null]);
+        reject(@"not_found", @"The design file could not be found", [NSNull null]);
         exit(-1);
     }
     
@@ -472,8 +472,8 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
         reject(@"invalid_map", @"Invalid map function", [NSNull null]);
         exit(-1);
     }
-    
-    CBLView* view = [database existingDocumentWithID:viewName];
+
+    CBLView* view = [database existingViewNamed:viewName];
     if (view != nil) [view deleteView];
     view = [database viewNamed:viewName];
     
