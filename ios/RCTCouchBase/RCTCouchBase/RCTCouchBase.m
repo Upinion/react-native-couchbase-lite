@@ -367,6 +367,9 @@ RCT_EXPORT_METHOD(getDocument: (NSString*) db
             resolve(@{});
         }
     }
+    
+    [database close:&err];
+    [localManager close];
 }
 
 
@@ -429,6 +432,8 @@ RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
         }
     }
     resolve(results);
+    [database close:&err];
+    [localManager close];
 }
 
 
@@ -499,7 +504,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     if ([paramKeys containsObject:@"skip"]) query.skip = [params objectForKey:@"skip"];
     if ([paramKeys containsObject:@"group"]) query.groupLevel = [params objectForKey:@"group"];
     if (keys != nil && [keys count] > 0) query.keys = keys;
-
+    
     CBLQueryEnumerator* qResults = [query run: &err];
     if (err != nil) {
         NSLog(@"%@", err);
@@ -525,6 +530,8 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     } else {
         resolve(@{@"elements":results});
     }
+    [database close:&err];
+    [localManager close];
 }
 
 

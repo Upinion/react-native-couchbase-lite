@@ -9,15 +9,16 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.Reducer;
-import com.couchbase.lite.ViewCompiler;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.JavascriptException;
@@ -45,6 +46,7 @@ import com.couchbase.lite.internal.RevisionInternal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
@@ -519,74 +521,59 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 wm.putDouble(entry.getKey(), ((Float) entry.getValue()).doubleValue());
             } else if (entry.getValue() instanceof String) {
                 wm.putString(entry.getKey(), ((String) entry.getValue()));
-            } else if (entry.getValue() instanceof Map<?, ?>) {
-                wm.putMap(entry.getKey(), CouchBase.mapToWritableMap((Map<String, Object>) entry.getValue()));
+            } else if (entry.getValue() instanceof LinkedHashMap) {
+                wm.putMap(entry.getKey(), CouchBase.mapToWritableMap((LinkedHashMap) entry.getValue()));
             } else if (entry.getValue() instanceof WritableMap) {
                 wm.putMap(entry.getKey(), (WritableMap) entry.getValue());
             } else if (entry.getValue() instanceof WritableArray) {
                 wm.putArray(entry.getKey(), (WritableArray) entry.getValue());
+            } else if (entry.getValue() instanceof ArrayList) {
+                wm.putArray(entry.getKey(), CouchBase.arrayToWritableArray(((ArrayList) entry.getValue()).toArray()));
+            } else if (entry.getValue() instanceof Object[]) {
+                wm.putArray(entry.getKey(), CouchBase.arrayToWritableArray((Object[]) entry.getValue()));
             } else {
-                WritableArray array = CouchBase.arrayToWritableMap((Object[]) entry.getValue());
-                if (array != null) {
-                    wm.putArray(entry.getKey(), array);
-                } else {
-                    wm.putNull(entry.getKey());
-                }
+                wm.putNull(entry.getKey());
             }
         }
         return wm;
     }
 
-    private static WritableArray arrayToWritableMap(Object[] array) {
+    private static WritableArray arrayToWritableArray(Object[] array) {
         WritableArray wa = Arguments.createArray();
-        if (array instanceof String[]) {
-            for (String v: (String[]) array) {
-                wa.pushString(v);
+        for (Object o : array) {
+            if (o instanceof LinkedHashMap) {
+                wa.pushMap(CouchBase.mapToWritableMap((LinkedHashMap) o));
+            } else if (o instanceof WritableMap) {
+                wa.pushMap((WritableMap) o);
+            } else if (o instanceof String) {
+                wa.pushString((String) o);
+            } else if (o instanceof Boolean) {
+                wa.pushBoolean(((Boolean) o).booleanValue());
+            } else if (o instanceof Double) {
+                wa.pushDouble(((Double) o).doubleValue());
+            } else if (o instanceof Float) {
+                wa.pushDouble(((Float) o).doubleValue());
+            } else if (o instanceof Integer) {
+                wa.pushInt(((Integer) o).intValue());
+            } else if (o instanceof WritableArray) {
+                wa.pushArray((WritableArray) o);
+            } else if (o instanceof Object[]) {
+                wa.pushArray(CouchBase.arrayToWritableArray((Object[])o));
+            } else {
+                wa.pushNull();
             }
-
-        } else if (array instanceof Map<?, ?>[]) {
-            for (Map<String, Object> v : (Map<String, Object>[]) array) {
-                wa.pushMap(CouchBase.mapToWritableMap(v));
-            }
-        } else if (array instanceof WritableMap[]) {
-            for (WritableMap v : (WritableMap[]) array) {
-                wa.pushMap(v);
-            }
-        } else if (array instanceof Object[][]) {
-            for (Object[] v : (Object[][]) array) {
-                wa.pushArray(arrayToWritableMap(v));
-            }
-        } else if (array instanceof WritableArray[]) {
-            for (WritableArray v : (WritableArray[]) array) {
-                wa.pushArray(v);
-            }
-        } else if (array instanceof Integer[]) {
-            for (Integer v : (Integer[]) array) {
-                wa.pushInt(v.intValue());
-            }
-        } else if (array instanceof Float[]) {
-            for (Float v: (Float[]) array) {
-                wa.pushDouble(v.doubleValue());
-            }
-        } else if (array instanceof Double[]) {
-            for (Double v: (Double[]) array) {
-                wa.pushDouble(v.doubleValue());
-            }
-        } else if (array instanceof Boolean[]) {
-            for (Boolean v: (Boolean[]) array) {
-                wa.pushBoolean(v.booleanValue());
-            }
-        } else {
-            return null;
         }
+
         return wa;
     }
 
     @ReactMethod
     public void getDocument(String database, String docId, Promise promise) {
+        Manager ss = null;
+        Database db = null;
         try {
-            Manager ss = this.startCBLite();
-            Database db = ss.getDatabase(database);
+            ss = this.startCBLite();
+            db = ss.getDatabase(database);
             Map<String, Object> properties = null;
 
             Pattern pattern = Pattern.compile("^_local/(.+)");
@@ -594,8 +581,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
             // If it matches, it is a local document.
             if (matcher.find()) {
-                String localDocId = matcher.group(0);
-                 properties = db.getExistingLocalDocument(localDocId);
+                String localDocId = matcher.group(1);
+                properties = db.getExistingLocalDocument(localDocId);
             } else {
                 Document doc = db.getExistingDocument(docId);
                 if (doc != null) {
@@ -605,7 +592,6 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
             if (properties != null) {
                 WritableMap result = CouchBase.mapToWritableMap(properties);
-
                 promise.resolve(result);
             } else {
                 promise.resolve(Arguments.createMap());
@@ -614,38 +600,45 @@ public class CouchBase extends ReactContextBaseJavaModule {
             promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {
             promise.reject("COUCHBASE_ERROR", e);
+        } finally {
+            if (db != null) db.close();
+            if (ss != null) ss.close();
         }
     }
 
 
     @ReactMethod
-    private void getAll(String database, String[] docIds, Promise promise) {
+    private void getAllDocuments(String database, ReadableArray docIds, Promise promise) {
+        Manager ss = null;
+        Database db = null;
         try {
-            Manager ss = this.startCBLite();
-            Database db = ss.getDatabase(database);
-            List<WritableMap> results = new ArrayList<WritableMap>();
+            ss = this.startCBLite();
+            db = ss.getDatabase(database);
+            WritableArray results = Arguments.createArray();
 
-            if (docIds == null || docIds.length == 0) {
+            if (docIds == null || docIds.size() == 0) {
                 Query query = db.createAllDocumentsQuery();
                 query.setAllDocsMode(Query.AllDocsMode.ALL_DOCS);
 
                 Iterator<QueryRow> it = query.run();
                 while (it.hasNext()) {
                     QueryRow row = it.next();
-                    if (row.getDocumentProperties() != null) {
-                        results.add(CouchBase.mapToWritableMap(row.getDocumentProperties()));
-                    }
+                    WritableMap m = Arguments.createMap();
+                    m.putString("key", String.valueOf(row.getKey()));
+                    m.putMap("value", CouchBase.mapToWritableMap((Map) row.getValue()));
+                    results.pushMap(m);
                 }
             } else {
                 Map<String, Object> properties = null;
                 Pattern pattern = Pattern.compile("^_local/(.+)");
 
-                for (String docId : docIds) {
+                for (int i = 0; i < docIds.size(); i++) {
+                    String docId = docIds.getString(i);
                     Matcher matcher = pattern.matcher(docId);
 
                     // If it matches, it is a local document.
                     if (matcher.find()) {
-                        String localDocId = matcher.group(0);
+                        String localDocId = matcher.group(1);
                         properties = db.getExistingLocalDocument(localDocId);
                     } else {
                         Document doc = db.getExistingDocument(docId);
@@ -655,50 +648,64 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     }
 
                     if (properties != null) {
-                        results.add(CouchBase.mapToWritableMap(properties));
+                        results.pushMap(CouchBase.mapToWritableMap(properties));
                     }
                 }
             }
-
-            promise.resolve((WritableMap[]) results.toArray());
+            promise.resolve(results);
         } catch (IOException e) {
             promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {
             promise.reject("COUCHBASE_ERROR", e);
+        } finally {
+            if (db != null) db.close();
+            if (ss != null) ss.close();
         }
     }
     
     @ReactMethod
-    private void getView(String database, String design, String viewName, Map<String, Object> params, Object[] docIds, Promise promise) {
+    private void getView(String database, String design, String viewName, ReadableMap params, ReadableArray docIds, Promise promise) {
+        Manager ss = null;
+        Database db = null;
         try {
-            Manager ss = this.startCBLite();
-            Database db = ss.getDatabase(database);
+            ss = this.startCBLite();
+            db = ss.getDatabase(database);
 
-            Document viewDoc = db.getExistingDocument("_design/".concat(design));
+            Document viewDoc = db.getExistingDocument("_design/" + design);
+
             if (viewDoc == null) {
                 promise.reject("NOT_FOUND", "The document _design/" + design + " could not be found.");
+                return;
             }
 
-            Map<String, Object> views = (Map <String, Object>) viewDoc.getProperty("views");
-            Map<String, Object> viewDefinition = (Map <String, Object>) views.get(viewName);
+            Map<String, Object> views = null;
+            try {
+                views = (Map<String, Object>) viewDoc.getProperty("views");
+            } catch (NullPointerException e) {
+                promise.reject("NOT_FOUND", "The views could not be retrieved.", e);
+                return;
+            }
+
+            Map<String, Object> viewDefinition = (Map<String, Object>) views.get(viewName);
 
             if (viewDefinition == null) {
                 promise.reject("NOT_FOUND", "The view " + viewName + " could not be found.");
+                return;
             }
 
             Mapper mapper = View.getCompiler().compileMap((String) viewDefinition.get("map"), "javascript");
             if (mapper == null) {
                 promise.reject("COMPILE_ERROR", "The map function of " + viewName + "could not be compiled.");
+                return;
             }
 
-            View view = db.getExistingView(viewName);
-            if (view != null) view.delete();
-            view = db.getView(viewName);
+            View view = db.getView(viewName);
 
             if (viewDefinition.containsKey("reduce")) {
                 Reducer reducer = View.getCompiler().compileReduce((String) viewDefinition.get("reduce"), "javascript");
                 if (reducer == null) {
                     promise.reject("COMPILE_ERROR", "The reduce function of " + viewName + "could not be compiled.");
+                    return;
                 }
                 view.setMapReduce(mapper, reducer, "1");
             } else {
@@ -707,41 +714,84 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
             Query query = view.createQuery();
 
-            if (params.containsKey("startkey")) query.setStartKey(params.get("startkey"));
-            if (params.containsKey("endkey")) query.setEndKey(params.get("endkey"));
-            if (params.containsKey("descending")) query.setDescending((Boolean) params.get("descending"));
-            if (params.containsKey("limit")) query.setLimit((Integer) params.get("limit"));
-            if (params.containsKey("skip")) query.setSkip((Integer) params.get("skip"));
-            if (params.containsKey("group")) query.setGroupLevel((Integer) params.get("group"));
-            if (docIds != null && docIds.length > 0) query.setKeys(Arrays.asList(docIds));
+            if (params != null) {
+                if (params.hasKey("startkey")) {
+                    ReadableArray array = params.getArray("startkey");
+                    List startKey = new ArrayList();
+                    for (int i = 0; i < array.size(); i++) {
+                        switch(array.getType(i)) {
+                            case Number:
+                                startKey.add(array.getInt(i));
+                                break;
+                            case String:
+                                startKey.add(array.getString(i));
+                                break;
+                            case Map:
+                                startKey.add(new HashMap<String, Object>());
+                                break;
+                        }
+                    }
+                    query.setStartKey(startKey);
+                }
+                if (params.hasKey("endkey")) {
+                    ReadableArray array = params.getArray("endkey");
+                    List endKey = new ArrayList();
+                    for (int i = 0; i < array.size(); i++) {
+                        switch(array.getType(i)) {
+                            case Number:
+                                endKey.add(array.getInt(i));
+                                break;
+                            case String:
+                                endKey.add(array.getString(i));
+                                break;
+                            case Map:
+                                endKey.add(new HashMap<String, Object>());
+                                break;
+                        }
+                    }
+                    query.setEndKey(endKey);
+                }
+                if (params.hasKey("descending"))
+                    query.setDescending(params.getBoolean("descending"));
+                if (params.hasKey("limit")) query.setLimit(params.getInt("limit"));
+                if (params.hasKey("skip")) query.setSkip(params.getInt("skip"));
+                if (params.hasKey("group")) query.setGroupLevel(params.getInt("group"));
+            }
+
+            if (docIds != null && docIds.size() > 0) {
+                List<Object> keys = new ArrayList();
+                for (int i = 0; i < docIds.size(); i++) {
+                    keys.add(docIds.getString(i).toString());
+                }
+                query.setKeys(keys);
+            }
 
             QueryEnumerator it = query.run();
             WritableArray results = Arguments.createArray();
-            while (it.hasNext()) {
-                QueryRow row = it.next();
-                if (row.getDocumentProperties() != null) {
-                    results.pushMap(CouchBase.mapToWritableMap(row.getDocumentProperties()));
-                } else if (viewDefinition.containsKey("reduce")) {
-                    WritableMap m = Arguments.createMap();
-                    m.putString("key", (String) row.getKey());
-                    m.putMap("value", CouchBase.mapToWritableMap((Map) row.getValue()));
-                    results.pushMap(m);
-                }
+
+            for (int i = 0; i < it.getCount(); i++) {
+                QueryRow row = it.getRow(i);
+
+                WritableMap m = Arguments.createMap();
+                m.putString("key", String.valueOf(row.getKey()));
+                m.putMap("value", CouchBase.mapToWritableMap((Map) row.getValue()));
+
+                results.pushMap(m);
             }
 
             WritableMap ret = Arguments.createMap();
             ret.putArray("elements", results);
-            if (params.containsKey("update_seq") && params.get("update_seq").equals(true)) {
+            if (params != null && params.hasKey("update_seq") && params.getBoolean("update_seq") == true) {
                 ret.putInt("update_seq", Long.valueOf(it.getSequenceNumber()).intValue());
             }
-
+            promise.resolve(ret);
         } catch (IOException e) {
             promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {
             promise.reject("COUCHBASE_ERROR", e);
+        } finally {
+            if (db != null) db.close();
+            if (ss != null) ss.close();
         }
     }
 }
-
-
-
