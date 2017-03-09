@@ -36,7 +36,7 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
         
         if (!manager) {
             NSLog(@"Cannot create Manager instance");
-            exit(-1);
+            return;
         }
     }
     return self;
@@ -68,8 +68,6 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
         withPassword: (NSString * ) pass
         withCallback: (RCTResponseSenderBlock) onEnd
 {
-    
-initListener:
     // Set up the listener.
     listener = [[CBLListener alloc] initWithManager:manager port:port];
     if (user != nil && pass != nil){
@@ -96,8 +94,7 @@ initListener:
             for (CBLDatabase *db in [databases allValues]) {
                 [db close:nil];
             }
-            port++;
-            goto initListener;
+            [self startServer:port+1 withUser:user withPassword:pass withCallback:onEnd];
         }
         
         // Exception handler
@@ -118,7 +115,7 @@ withRemotePassword: (NSString*) remotePassword
     
     if (listener == nil) {
         NSLog(@"Listener has not been initialised.");
-        exit(-1);
+        return;
     }
     
     // Create the database.
@@ -127,7 +124,7 @@ withRemotePassword: (NSString*) remotePassword
     
     if (!database) {
         NSLog(@"%@", err);
-        exit(-1);
+        return;
     }
     
     
@@ -235,6 +232,7 @@ withRemotePassword: (NSString*) remotePassword
     }
 }
 
+
 RCT_EXPORT_METHOD(serverLocal: (int) listenPort
                   withUserLocal: (NSString*) userLocal
                   withPasswordLocal: (NSString*) passwordLocal
@@ -299,13 +297,13 @@ RCT_EXPORT_METHOD(compact: (NSString*) databaseLocal)
     CBLDatabase* database = [databases objectForKey:databaseLocal];
     if (database == nil) {
         NSLog(@"Database does not exist.");
-        exit(-1);
+        return;
     }
     
     BOOL success = [database compact:&error];
     if (!success) {
         NSLog(@"%@", error);
-        exit(-1);
+        return;
     }
 }
 
@@ -328,5 +326,213 @@ RCT_EXPORT_METHOD(closeDatabase: (NSString*) databaseName withCallback: (RCTResp
         onEnd(@[[NSNull null], cb]);
     }
 }
+
+
+RCT_EXPORT_METHOD(getDocument: (NSString*) db
+                  withId:(NSString*) docId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSError *err;
+    CBLManager* localManager = [[CBLManager alloc] init];
+    CBLDatabase* database = [localManager databaseNamed:db error:&err];
+    
+    if (!database) {
+        NSLog(@"%@", err);
+        reject(@"not_opened", @"The database could not be opened", err);
+        return;
+    }
+    
+    // We need to check if it is a _local document or a normal document.
+    NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:@"^_local\/(.+)"
+                                                                           options:0
+                                                                             error:&err];
+    NSTextCheckingResult* match = [regex firstMatchInString:docId
+                                                    options:0
+                                                      range:NSMakeRange(0, [docId length])];
+
+    if (match) {
+        NSString* localDocId = [docId substringWithRange:[match rangeAtIndex:1]];
+        CBLJSONDict* doc = [database existingLocalDocumentWithID:localDocId];
+        if (doc != nil) {
+            resolve(doc);
+        } else {
+            resolve(@{});
+        }
+    } else {
+        CBLDocument* doc = [database existingDocumentWithID:docId];
+        if (doc != nil && doc.properties != nil) {
+            resolve(doc.properties);
+        } else {
+            resolve(@{});
+        }
+    }
+    
+    [database close:&err];
+    [localManager close];
+}
+
+
+RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
+                  withIds:(nullable NSArray*) ids
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSError *err;
+    CBLManager* localManager = [[CBLManager alloc] init];
+    CBLDatabase* database = [localManager databaseNamed:db error:&err];
+    
+    if (!database) {
+        NSLog(@"%@", err);
+        reject(@"not_opened", @"The database could not be opened", err);
+        return;
+    }
+    
+    NSMutableArray* results = [[NSMutableArray alloc] init];
+    if (ids == NULL || [ids count] == 0) {
+        CBLQuery* query = [database createAllDocumentsQuery];
+        query.allDocsMode = kCBLAllDocs;
+        
+        CBLQueryEnumerator* qResults = [query run:&err];
+        
+        if (qResults == nil) {
+            NSLog(@"%@", err);
+            reject(@"query_failed", @"The query could not be completed", err);
+            return;
+        }
+        
+        for (CBLQueryRow* row in qResults) {
+            if (row.document.properties != nil) {
+                [results addObject:row.document.properties];
+            }
+        }
+    } else {
+        
+        for(NSString* docId in ids) {
+            // We need to check if it is a _local document or a normal document.
+            NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:@"^_local\/(.+)"
+                                                                                   options:0
+                                                                                     error:&err];
+            NSTextCheckingResult* match = [regex firstMatchInString:docId
+                                                            options:0
+                                                              range:NSMakeRange(0, [docId length])];
+            
+            if (match) {
+                NSString* localDocId = [docId substringWithRange:[match rangeAtIndex:1]];
+                CBLJSONDict* doc = [database existingLocalDocumentWithID:localDocId];
+                if (doc != nil) {
+                    [results addObject:doc];
+                }
+            } else {
+                CBLDocument* doc = [database existingDocumentWithID:docId];
+                if (doc != nil && doc.properties != nil) {
+                    [results addObject:doc.properties];
+                }
+            }
+        }
+    }
+    resolve(results);
+    [database close:&err];
+    [localManager close];
+}
+
+
+RCT_EXPORT_METHOD(getView: (NSString*) db
+                  withDesign: (NSString*) design
+                  withView: (NSString*) viewName
+                  withParams: (NSDictionary*) params
+                  withKeys: (NSArray*) keys
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSError *err;
+    CBLManager* localManager = [[CBLManager alloc] init];
+    CBLDatabase* database = [localManager databaseNamed:db error:&err];
+    
+    if (!database) {
+        NSLog(@"%@", err);
+        reject(@"not_opened", @"The database could not be opened", err);
+        return;
+    }
+    
+    CBLDocument* viewsDoc = [database existingDocumentWithID:[NSString stringWithFormat:@"_design/%@", design]];
+    if (viewsDoc == nil || viewsDoc.properties == nil || [viewsDoc.properties objectForKey:@"views"] == nil) {
+        NSLog(@"The design file '%@' could not be found", design);
+        reject(@"not_found", @"The design file could not be found", [NSNull null]);
+        return;
+    }
+    
+    NSDictionary* views = [viewsDoc.properties objectForKey:@"views"];
+    if ([views objectForKey:viewName] == nil || [[views objectForKey:viewName] objectForKey:@"map"] == nil) {
+        NSLog(@"The view %@ was not found in the database", viewName);
+        reject(@"not_found", @"The view was not found in the database", [NSNull null]);
+        return;
+    }
+    
+    NSDictionary* viewDefinition = [views objectForKey:viewName];
+    CBLMapBlock mapBlock = [[CBLView compiler]compileMapFunction:[viewDefinition objectForKey:@"map"] language:@"javascript"];
+
+    if (mapBlock == nil) {
+        NSLog(@"Invalid map function");
+        reject(@"invalid_map", @"Invalid map function", [NSNull null]);
+        return;
+    }
+
+    CBLView* view = [database existingViewNamed:viewName];
+    if (view != nil) [view deleteView];
+    view = [database viewNamed:viewName];
+    
+    if([viewDefinition objectForKey:@"reduce"] != nil) {
+        CBLReduceBlock reduceBlock = [[CBLView compiler]compileReduceFunction:[viewDefinition objectForKey:@"reduce"] language:@"javascript"];
+        if (reduceBlock == nil) {
+            NSLog(@"Invalid reduce function");
+            reject(@"invalid_reduce", @"Invalid reduce function", [NSNull null]);
+            return;
+        }
+        [view setMapBlock:mapBlock reduceBlock:reduceBlock version:@"1"];
+    } else {
+        [view setMapBlock:mapBlock version:@"1"];
+    }
+    
+    CBLQuery* query = [view createQuery];
+    
+    NSArray* paramKeys = [params allKeys];
+    if ([paramKeys containsObject:@"startkey"]) query.startKeyDocID = [params objectForKey:@"startkey"];
+    if ([paramKeys containsObject:@"endkey"]) query.endKeyDocID = [params objectForKey:@"endkey"];
+    if ([paramKeys containsObject:@"descending"]) query.descending = [params objectForKey:@"descending"];
+    if ([paramKeys containsObject:@"limit"]) query.limit = [params objectForKey:@"limit"];
+    if ([paramKeys containsObject:@"skip"]) query.skip = [params objectForKey:@"skip"];
+    if ([paramKeys containsObject:@"group"]) query.groupLevel = [params objectForKey:@"group"];
+    if (keys != nil && [keys count] > 0) query.keys = keys;
+    
+    CBLQueryEnumerator* qResults = [query run: &err];
+    if (err != nil) {
+        NSLog(@"%@", err);
+        reject(@"query_error", @"The query failed", err);
+        return;
+    }
+    
+    NSMutableArray* results = [[NSMutableArray alloc] init];
+    for (CBLQueryRow* row in qResults) {
+        if (row.document.properties != nil) {
+            [results addObject:row.document.properties];
+            
+        // The reduced views have a different format.
+        } else if([viewDefinition objectForKey:@"reduce"] != nil) {
+            NSDictionary* resultEntry = @{@"key": row.key, @"value": row.value};
+            [results addObject:resultEntry];
+        }
+    }
+
+    if ([paramKeys containsObject:@"update_seq"] && [params objectForKey:@"update_seq"] == @YES) {
+        resolve(@{@"update_seq":[NSNumber numberWithLongLong:qResults.sequenceNumber],
+                  @"elements":results});
+    } else {
+        resolve(@{@"elements":results});
+    }
+    [database close:&err];
+    [localManager close];
+}
+
 
 @end
