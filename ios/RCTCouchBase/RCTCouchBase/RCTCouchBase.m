@@ -36,7 +36,7 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
         
         if (!manager) {
             NSLog(@"Cannot create Manager instance");
-            exit(-1);
+            return;
         }
     }
     return self;
@@ -115,7 +115,7 @@ withRemotePassword: (NSString*) remotePassword
     
     if (listener == nil) {
         NSLog(@"Listener has not been initialised.");
-        exit(-1);
+        return;
     }
     
     // Create the database.
@@ -124,7 +124,7 @@ withRemotePassword: (NSString*) remotePassword
     
     if (!database) {
         NSLog(@"%@", err);
-        exit(-1);
+        return;
     }
     
     
@@ -297,13 +297,13 @@ RCT_EXPORT_METHOD(compact: (NSString*) databaseLocal)
     CBLDatabase* database = [databases objectForKey:databaseLocal];
     if (database == nil) {
         NSLog(@"Database does not exist.");
-        exit(-1);
+        return;
     }
     
     BOOL success = [database compact:&error];
     if (!success) {
         NSLog(@"%@", error);
-        exit(-1);
+        return;
     }
 }
 
@@ -340,7 +340,7 @@ RCT_EXPORT_METHOD(getDocument: (NSString*) db
     if (!database) {
         NSLog(@"%@", err);
         reject(@"not_opened", @"The database could not be opened", err);
-        exit(-1);
+        return;
     }
     
     // We need to check if it is a _local document or a normal document.
@@ -385,7 +385,7 @@ RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
     if (!database) {
         NSLog(@"%@", err);
         reject(@"not_opened", @"The database could not be opened", err);
-        exit(-1);
+        return;
     }
     
     NSMutableArray* results = [[NSMutableArray alloc] init];
@@ -398,7 +398,7 @@ RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
         if (qResults == nil) {
             NSLog(@"%@", err);
             reject(@"query_failed", @"The query could not be completed", err);
-            exit(-1);
+            return;
         }
         
         for (CBLQueryRow* row in qResults) {
@@ -452,21 +452,21 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     if (!database) {
         NSLog(@"%@", err);
         reject(@"not_opened", @"The database could not be opened", err);
-        exit(-1);
+        return;
     }
     
     CBLDocument* viewsDoc = [database existingDocumentWithID:[NSString stringWithFormat:@"_design/%@", design]];
     if (viewsDoc == nil || viewsDoc.properties == nil || [viewsDoc.properties objectForKey:@"views"] == nil) {
         NSLog(@"The design file '%@' could not be found", design);
         reject(@"not_found", @"The design file could not be found", [NSNull null]);
-        exit(-1);
+        return;
     }
     
     NSDictionary* views = [viewsDoc.properties objectForKey:@"views"];
     if ([views objectForKey:viewName] == nil || [[views objectForKey:viewName] objectForKey:@"map"] == nil) {
         NSLog(@"The view %@ was not found in the database", viewName);
         reject(@"not_found", @"The view was not found in the database", [NSNull null]);
-        exit(-1);
+        return;
     }
     
     NSDictionary* viewDefinition = [views objectForKey:viewName];
@@ -475,7 +475,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     if (mapBlock == nil) {
         NSLog(@"Invalid map function");
         reject(@"invalid_map", @"Invalid map function", [NSNull null]);
-        exit(-1);
+        return;
     }
 
     CBLView* view = [database existingViewNamed:viewName];
@@ -487,7 +487,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
         if (reduceBlock == nil) {
             NSLog(@"Invalid reduce function");
             reject(@"invalid_reduce", @"Invalid reduce function", [NSNull null]);
-            exit(-1);
+            return;
         }
         [view setMapBlock:mapBlock reduceBlock:reduceBlock version:@"1"];
     } else {
@@ -509,7 +509,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     if (err != nil) {
         NSLog(@"%@", err);
         reject(@"query_error", @"The query failed", err);
-        exit(-1);
+        return;
     }
     
     NSMutableArray* results = [[NSMutableArray alloc] init];
