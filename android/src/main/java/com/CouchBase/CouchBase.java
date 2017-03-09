@@ -567,6 +567,12 @@ public class CouchBase extends ReactContextBaseJavaModule {
         return wa;
     }
 
+    /**
+     * Gets an existing document from the database.
+     * @param database  String  Database name.
+     * @param docId     String  Document id.
+     * @param promise   Promise Promise to be returned to the JavaScript engine.
+     */
     @ReactMethod
     public void getDocument(String database, String docId, Promise promise) {
         Manager ss = null;
@@ -606,9 +612,14 @@ public class CouchBase extends ReactContextBaseJavaModule {
         }
     }
 
-
+    /**
+     * Gets all the existing documents from the database.
+     * @param database  String          Database name.
+     * @param docIds    ReadableArray   JavaScript array containing the keys.
+     * @param promise   Promise         Promise to be returned to the JavaScript engine.
+     */
     @ReactMethod
-    private void getAllDocuments(String database, ReadableArray docIds, Promise promise) {
+    public void getAllDocuments(String database, ReadableArray docIds, Promise promise) {
         Manager ss = null;
         Database db = null;
         try {
@@ -662,9 +673,18 @@ public class CouchBase extends ReactContextBaseJavaModule {
             if (ss != null) ss.close();
         }
     }
-    
+
+    /**
+     * Gets all the documents returned by the given view.
+     * @param database String Database name.
+     * @param design String Design document where the view can be found.
+     * @param viewName String Name of the view to be queried.
+     * @param params ReadableMap JavaScript object containing the extra parameters to pass to the view.
+     * @param docIds ReadableArray JavaScript array containing the keys.
+     * @param promise Promise Promise to be returned to the JavaScript engine.
+     */
     @ReactMethod
-    private void getView(String database, String design, String viewName, ReadableMap params, ReadableArray docIds, Promise promise) {
+    public void getView(String database, String design, String viewName, ReadableMap params, ReadableArray docIds, Promise promise) {
         Manager ss = null;
         Database db = null;
         try {
