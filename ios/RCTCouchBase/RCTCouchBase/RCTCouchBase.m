@@ -445,7 +445,7 @@ RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
         }
     }
     resolve(@{
-              @"elements": results,
+              @"rows": results,
               @"total_rows": [NSNumber numberWithUnsignedInteger: results.count]
               });
     [database close:&err];
@@ -547,13 +547,13 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     }
 
     if ([paramKeys containsObject:@"update_seq"] && [params objectForKey:@"update_seq"] == @YES) {
-        resolve(@{@"elements": results,
+        resolve(@{@"rows": results,
                   @"offset": [NSNumber numberWithUnsignedInteger: query.skip ? query.skip : 0],
                   @"total_rows": [NSNumber numberWithLongLong: view.totalRows],
                   @"update_seq": [NSNumber numberWithLongLong:qResults.sequenceNumber]
                   });
     } else {
-        resolve(@{@"elements": results,
+        resolve(@{@"rows": results,
                   @"offset": [NSNumber numberWithUnsignedInteger: query.skip ? query.skip : 0],
                   @"total_rows": [NSNumber numberWithLongLong: view.totalRows]
                   });

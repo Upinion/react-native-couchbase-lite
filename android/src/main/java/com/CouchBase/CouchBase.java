@@ -21,7 +21,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.modules.core.JavascriptException;
+import com.facebook.react.common.JavascriptException;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 
@@ -663,7 +663,10 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     }
                 }
             }
-            promise.resolve(results);
+            WritableMap ret = Arguments.createMap();
+            ret.putArray("rows", results);
+            ret.putInt("total_rows", results.size());
+            promise.resolve(ret);
         } catch (IOException e) {
             promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {
@@ -701,11 +704,12 @@ public class CouchBase extends ReactContextBaseJavaModule {
             Map<String, Object> views = null;
             try {
                 views = (Map<String, Object>) viewDoc.getProperty("views");
-            } catch (NullPointerException e) {
+            } catch (Exception e) {
                 promise.reject("NOT_FOUND", "The views could not be retrieved.", e);
                 return;
             }
 
+            @SuppressWarnings("unchecked")
             Map<String, Object> viewDefinition = (Map<String, Object>) views.get(viewName);
 
             if (viewDefinition == null) {
@@ -737,7 +741,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
             if (params != null) {
                 if (params.hasKey("startkey")) {
                     ReadableArray array = params.getArray("startkey");
-                    List startKey = new ArrayList();
+                    List<Object> startKey = new ArrayList<Object>();
                     for (int i = 0; i < array.size(); i++) {
                         switch(array.getType(i)) {
                             case Number:
@@ -755,7 +759,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 }
                 if (params.hasKey("endkey")) {
                     ReadableArray array = params.getArray("endkey");
-                    List endKey = new ArrayList();
+                    List<Object> endKey = new ArrayList<Object>();
                     for (int i = 0; i < array.size(); i++) {
                         switch(array.getType(i)) {
                             case Number:
@@ -779,7 +783,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
             }
 
             if (docIds != null && docIds.size() > 0) {
-                List<Object> keys = new ArrayList();
+                List<Object> keys = new ArrayList<Object>();
                 for (int i = 0; i < docIds.size(); i++) {
                     keys.add(docIds.getString(i).toString());
                 }
@@ -794,13 +798,15 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
                 WritableMap m = Arguments.createMap();
                 m.putString("key", String.valueOf(row.getKey()));
-                m.putMap("value", CouchBase.mapToWritableMap((Map) row.getValue()));
+                m.putMap("value", CouchBase.mapToWritableMap((Map<String,Object>)row.getValue()));
 
                 results.pushMap(m);
             }
 
             WritableMap ret = Arguments.createMap();
-            ret.putArray("elements", results);
+            ret.putArray("rows", results);
+            ret.putInt("offset", params.hasKey("skip") ? params.getInt("skip") : 0);
+            ret.putInt("total_rows", view.getTotalRows());
             if (params != null && params.hasKey("update_seq") && params.getBoolean("update_seq") == true) {
                 ret.putInt("update_seq", Long.valueOf(it.getSequenceNumber()).intValue());
             }
