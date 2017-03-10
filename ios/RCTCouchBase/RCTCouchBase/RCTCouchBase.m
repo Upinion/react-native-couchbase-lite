@@ -36,7 +36,7 @@ NSString* const ONLINE_KEY = @"couchBaseOnline";
         
         if (!manager) {
             NSLog(@"Cannot create Manager instance");
-            return;
+            return self;
         }
     }
     return self;
@@ -403,7 +403,11 @@ RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
         
         for (CBLQueryRow* row in qResults) {
             if (row.document.properties != nil) {
-                [results addObject:row.document.properties];
+                [results addObject:@{@"doc": row.document.properties,
+                                     @"_id": row.document.documentID,
+                                     @"key": row.document.documentID,
+                                     @"value": @{@"rev": row.document.currentRevisionID}
+                                     }];
             }
         }
     } else {
@@ -421,17 +425,29 @@ RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
                 NSString* localDocId = [docId substringWithRange:[match rangeAtIndex:1]];
                 CBLJSONDict* doc = [database existingLocalDocumentWithID:localDocId];
                 if (doc != nil) {
-                    [results addObject:doc];
+                    [results addObject: @{@"doc": doc,
+                                          @"_id": localDocId,
+                                          @"key": localDocId
+                                          }];
                 }
             } else {
                 CBLDocument* doc = [database existingDocumentWithID:docId];
                 if (doc != nil && doc.properties != nil) {
-                    [results addObject:doc.properties];
+                    NSMutableDictionary* values = [NSMutableDictionary dictionaryWithObjects: [doc.properties allValues] forKeys:[doc.properties allKeys]];
+                    [values setValue: doc.documentID forKey:@"_id"];
+                    [results addObject: @{@"doc": values,
+                                          @"_id": doc.documentID,
+                                          @"key": doc.documentID,
+                                          @"value": @{@"rev": doc.currentRevisionID}
+                                          }];
                 }
             }
         }
     }
-    resolve(results);
+    resolve(@{
+              @"elements": results,
+              @"total_rows": [NSNumber numberWithUnsignedInteger: results.count]
+              });
     [database close:&err];
     [localManager close];
 }
@@ -471,7 +487,8 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     
     NSDictionary* viewDefinition = [views objectForKey:viewName];
     CBLMapBlock mapBlock = [[CBLView compiler]compileMapFunction:[viewDefinition objectForKey:@"map"] language:@"javascript"];
-
+    NSString* version = [viewDefinition objectForKey:@"version"];
+    
     if (mapBlock == nil) {
         NSLog(@"Invalid map function");
         reject(@"invalid_map", @"Invalid map function", [NSNull null]);
@@ -479,8 +496,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     }
 
     CBLView* view = [database existingViewNamed:viewName];
-    if (view != nil) [view deleteView];
-    view = [database viewNamed:viewName];
+    if (view == nil) view = [database viewNamed:viewName];
     
     if([viewDefinition objectForKey:@"reduce"] != nil) {
         CBLReduceBlock reduceBlock = [[CBLView compiler]compileReduceFunction:[viewDefinition objectForKey:@"reduce"] language:@"javascript"];
@@ -489,10 +505,11 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
             reject(@"invalid_reduce", @"Invalid reduce function", [NSNull null]);
             return;
         }
-        [view setMapBlock:mapBlock reduceBlock:reduceBlock version:@"1"];
+        [view setMapBlock:mapBlock reduceBlock:reduceBlock version: version != nil ? [NSString stringWithString: version] : @"1"];
     } else {
-        [view setMapBlock:mapBlock version:@"1"];
+        [view setMapBlock:mapBlock version: version != nil ? [NSString stringWithString: version] : @"1"];
     }
+    [view updateIndex];
     
     CBLQuery* query = [view createQuery];
     
@@ -515,7 +532,12 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     NSMutableArray* results = [[NSMutableArray alloc] init];
     for (CBLQueryRow* row in qResults) {
         if (row.document.properties != nil) {
-            [results addObject:row.document.properties];
+            NSMutableDictionary* values = [NSMutableDictionary dictionaryWithObjects: [row.document.properties allValues] forKeys:[row.document.properties allKeys]];
+            [values setValue: row.document.documentID forKey:@"_id"];
+            [results addObject: @{@"value": values,
+                                  @"_id": row.document.documentID,
+                                  @"key": row.document.documentID,
+                                  }];
             
         // The reduced views have a different format.
         } else if([viewDefinition objectForKey:@"reduce"] != nil) {
@@ -525,10 +547,16 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
     }
 
     if ([paramKeys containsObject:@"update_seq"] && [params objectForKey:@"update_seq"] == @YES) {
-        resolve(@{@"update_seq":[NSNumber numberWithLongLong:qResults.sequenceNumber],
-                  @"elements":results});
+        resolve(@{@"elements": results,
+                  @"offset": [NSNumber numberWithUnsignedInteger: query.skip ? query.skip : 0],
+                  @"total_rows": [NSNumber numberWithLongLong: view.totalRows],
+                  @"update_seq": [NSNumber numberWithLongLong:qResults.sequenceNumber]
+                  });
     } else {
-        resolve(@{@"elements":results});
+        resolve(@{@"elements": results,
+                  @"offset": [NSNumber numberWithUnsignedInteger: query.skip ? query.skip : 0],
+                  @"total_rows": [NSNumber numberWithLongLong: view.totalRows]
+                  });
     }
     [database close:&err];
     [localManager close];
