@@ -180,6 +180,8 @@ CouchBase.serverRemote(String databaseLocal, String remoteURL, String  remoteUse
 public void compact(String databaseLocal)
 ```
 
+## Retrieving (WIP)
+
 ### Get document.
 ```java
 /**
@@ -213,6 +215,76 @@ public void compact(String databaseLocal)
  */
  public void getView(String database, String design, String viewName, ReadableMap params, ReadableArray docIds, Promise promise)
 ```
+
+## Access to get, getAll and getView (WIP)
+
+### Get document.
+```java
+/**
+ * Gets an existing document from the database.
+ * @param database  String  Database name.
+ * @param docId     String  Document id.
+ * @param promise   Promise Promise to be returned to the JavaScript engine.
+ */
+ public void getDocument(String database, String docId, Promise promise)
+```
+### Get all documents.
+```java
+/**
+ * Gets all the existing documents from the database.
+ * @param database  String          Database name.
+ * @param docIds    ReadableArray   JavaScript array containing the keys.
+ * @param promise   Promise         Promise to be returned to the JavaScript engine.
+ */
+ public void getAllDocuments(String database, RedeableArray docIds, Promise promise)
+```
+### Get view.
+```java
+/**
+ * Gets all the documents returned by the given view.
+ * @param database  String          Database name.
+ * @param design    String          Design document where the view can be found.
+ * @param viewName  String          Name of the view to be queried.
+ * @param params    ReadableMap     JavaScript object containing the extra parameters to pass to the view.
+ * @param docIds    ReadableArray   JavaScript array containing the keys.
+ * @param promise   Promise         Promise to be returned to the JavaScript engine.
+ */
+ public void getView(String database, String design, String viewName, ReadableMap params, ReadableArray docIds, Promise promise)
+```
+
+## Access to create / destroy dbs (WIP)
+
+### Create database.
+```java
+/**
+ * Creates a database without HTTP server or replicators.
+ * @param database  String  Database name.
+ * @param promise   Promise Promise to be returned to the JavaScript engine.
+ */
+ public void createDatabase(String database, Promise promise)
+```
+### Destroy database.
+```java
+/**
+ * Destroys an existing database (also stops replicators).
+ * @param database  String          Database name.
+ * @param promise   Promise         Promise to be returned to the JavaScript engine.
+ */
+ public void detroyDatabase(String database, Promise promise)
+```
+
+## Saving (WIP)
+```java
+/**
+ * Creates/Updates a document.
+ * @param database  String  Database name.
+ * @param docId     String  Document id.
+ * @param params    ReadableMap Javascript object containing document data.
+ * @param promise   Promise Promise to be returned to the JavaScript engine.
+ */
+ public void getDocument(String database, String docId, ReadableMap params, Promise promise)
+```
+
 ## Setup
 
 ### Android
