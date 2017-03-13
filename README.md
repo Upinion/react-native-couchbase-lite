@@ -238,6 +238,8 @@ public void compact(String databaseLocal)
 ```
 
 ## Saving (WIP)
+
+### Put document.
 ```java
 /**
  * Creates/Updates a document.
@@ -246,7 +248,7 @@ public void compact(String databaseLocal)
  * @param params    ReadableMap Javascript object containing document data.
  * @param promise   Promise Promise to be returned to the JavaScript engine.
  */
- public void getDocument(String database, String docId, ReadableMap params, Promise promise)
+ public void putDocument(String database, String docId, ReadableMap params, Promise promise)
 ```
 
 ## Setup
