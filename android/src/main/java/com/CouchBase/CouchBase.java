@@ -17,10 +17,12 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.JavascriptException;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
@@ -635,18 +637,23 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 while (it.hasNext()) {
                     QueryRow row = it.next();
                     WritableMap m = Arguments.createMap();
+                    WritableMap m2 = Arguments.createMap();
+                    m2.putString("rev", row.getDocumentRevisionId());
                     m.putString("key", String.valueOf(row.getKey()));
-                    m.putMap("value", CouchBase.mapToWritableMap((Map) row.getValue()));
+                    m.putString("_id", String.valueOf(row.getKey()));
+                    m.putMap("doc", CouchBase.mapToWritableMap((Map) row.getValue()));
+                    m.putMap("value", m2);
                     results.pushMap(m);
                 }
             } else {
-                Map<String, Object> properties = null;
                 Pattern pattern = Pattern.compile("^_local/(.+)");
 
                 for (int i = 0; i < docIds.size(); i++) {
+                    Map<String, Object> properties = null;
                     String docId = docIds.getString(i);
                     Matcher matcher = pattern.matcher(docId);
 
+                    WritableMap m = Arguments.createMap();
                     // If it matches, it is a local document.
                     if (matcher.find()) {
                         String localDocId = matcher.group(1);
@@ -655,11 +662,17 @@ public class CouchBase extends ReactContextBaseJavaModule {
                         Document doc = db.getExistingDocument(docId);
                         if (doc != null) {
                             properties = doc.getProperties();
+                            WritableMap m2 = Arguments.createMap();
+                            m2.putString("rev", doc.getCurrentRevisionId());
+                            m.putMap("value", m2);
                         }
                     }
 
                     if (properties != null) {
-                        results.pushMap(CouchBase.mapToWritableMap(properties));
+                        m.putString("key", String.valueOf(docId));
+                        m.putString("_id", String.valueOf(docId));
+                        m.putMap("doc", CouchBase.mapToWritableMap(properties));
+                        results.pushMap(m);
                     }
                 }
             }
@@ -718,6 +731,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
             }
 
             Mapper mapper = View.getCompiler().compileMap((String) viewDefinition.get("map"), "javascript");
+            String version = (String)viewDefinition.get("version");
             if (mapper == null) {
                 promise.reject("COMPILE_ERROR", "The map function of " + viewName + "could not be compiled.");
                 return;
@@ -731,49 +745,41 @@ public class CouchBase extends ReactContextBaseJavaModule {
                     promise.reject("COMPILE_ERROR", "The reduce function of " + viewName + "could not be compiled.");
                     return;
                 }
-                view.setMapReduce(mapper, reducer, "1");
+                view.setMapReduce(mapper, reducer, version != null ? version : "1");
             } else {
-                view.setMap(mapper, "1");
+                view.setMap(mapper, version != null ? version : "1");
             }
 
             Query query = view.createQuery();
 
             if (params != null) {
                 if (params.hasKey("startkey")) {
-                    ReadableArray array = params.getArray("startkey");
-                    List<Object> startKey = new ArrayList<Object>();
-                    for (int i = 0; i < array.size(); i++) {
-                        switch(array.getType(i)) {
-                            case Number:
-                                startKey.add(array.getInt(i));
-                                break;
-                            case String:
-                                startKey.add(array.getString(i));
-                                break;
-                            case Map:
-                                startKey.add(new HashMap<String, Object>());
-                                break;
-                        }
+                    switch (params.getType("startkey")) {
+                        case Array:
+                            ReadableNativeArray array = (ReadableNativeArray)params.getArray("startkey");
+                            query.setStartKey(array.toArrayList());
+                            break;
+                        case String:
+                            query.setStartKey(params.getString("startkey"));
+                            break;
+                        case Number:
+                            query.setStartKey(params.getInt("startkey"));
+                            break;
                     }
-                    query.setStartKey(startKey);
                 }
                 if (params.hasKey("endkey")) {
-                    ReadableArray array = params.getArray("endkey");
-                    List<Object> endKey = new ArrayList<Object>();
-                    for (int i = 0; i < array.size(); i++) {
-                        switch(array.getType(i)) {
-                            case Number:
-                                endKey.add(array.getInt(i));
-                                break;
-                            case String:
-                                endKey.add(array.getString(i));
-                                break;
-                            case Map:
-                                endKey.add(new HashMap<String, Object>());
-                                break;
-                        }
+                    switch (params.getType("startkey")) {
+                        case Array:
+                            ReadableNativeArray array = (ReadableNativeArray)params.getArray("endkey");
+                            query.setEndKey(array.toArrayList());
+                            break;
+                        case String:
+                            query.setStartKey(params.getString("endkey"));
+                            break;
+                        case Number:
+                            query.setStartKey(params.getInt("endkey"));
+                            break;
                     }
-                    query.setEndKey(endKey);
                 }
                 if (params.hasKey("descending"))
                     query.setDescending(params.getBoolean("descending"));
@@ -805,7 +811,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
             WritableMap ret = Arguments.createMap();
             ret.putArray("rows", results);
-            ret.putInt("offset", params.hasKey("skip") ? params.getInt("skip") : 0);
+            ret.putInt("offset", params != null && params.hasKey("skip") ? params.getInt("skip") : 0);
             ret.putInt("total_rows", view.getTotalRows());
             if (params != null && params.hasKey("update_seq") && params.getBoolean("update_seq") == true) {
                 ret.putInt("update_seq", Long.valueOf(it.getSequenceNumber()).intValue());
