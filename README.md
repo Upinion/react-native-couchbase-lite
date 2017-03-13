@@ -113,7 +113,7 @@ CouchBase.setTimeout(integer timeout)
  * Used to triggers events like not existing Database after replaction started.
  * @param  database     string      name of database
  */
-CouchBase.setTimeout(integer timeout)
+CouchBase.refreshReplication(String databaseLocal)
 ```
 ### Enable debug log
 ```java
