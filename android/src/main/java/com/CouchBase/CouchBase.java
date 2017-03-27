@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.Context;
 
 import com.couchbase.lite.Document;
+import com.couchbase.lite.SavedRevision;
 import com.couchbase.lite.Mapper;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
@@ -19,6 +20,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableNativeMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -109,6 +111,26 @@ public class CouchBase extends ReactContextBaseJavaModule {
         return constants;
     }
     /**
+     * Function to be shared to React-native, it starts a couchbase manager
+     * @param  listen_port      Integer     port to start server
+     * @param  userLocal        String      user for local server
+     * @param  passwordLocal    String      password for local server
+     * @param  databaseLocal    String      database for local server
+     * @param  onEnd            Callback    function to call when finish
+     */
+    @ReactMethod
+    public void serverManager(Callback onEnd) {
+        try {
+            this.managerServer = startCBLite();
+
+            if(onEnd != null)
+                onEnd.invoke();
+        } catch (Exception e) {
+            throw new JavascriptException(e.getMessage());
+        }
+    }
+
+    /**
      * Function to be shared to React-native, it starts a local couchbase server
      * @param  listen_port      Integer     port to start server
      * @param  userLocal        String      user for local server
@@ -150,7 +172,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
         try {
             URL url = new URL(remoteURL);
-            Database db = ss.getDatabase(databaseLocal);
+            Database db = ss.getExistingDatabase(databaseLocal);
             final Replication push = db.createPushReplication(url);
             final Replication pull = db.createPullReplication(url);
             pull.setContinuous(true);
@@ -281,7 +303,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
 
         try {
             URL url = new URL(remoteURL);
-            Database db = ss.getDatabase(databaseLocal);
+            Database db = ss.getExistingDatabase(databaseLocal);
             final Replication push = db.createPushReplication(url);
             final Replication pull = db.createPullReplication(url);
             pull.setContinuous(true);
@@ -406,7 +428,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
             throw new JavascriptException("CouchBase Server bad arguments");
 
         try {
-            Database db = ss.getDatabase(databaseLocal);
+            Database db = ss.getExistingDatabase(databaseLocal);
             db.compact();
         }catch(Exception e){
             throw new JavascriptException(e.getMessage());
@@ -426,7 +448,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         if(databaseLocal == null)
             throw new JavascriptException("CouchBase Server bad arguments");
         try {
-            Database db = ss.getDatabase(databaseLocal);
+            Database db = ss.getExistingDatabase(databaseLocal);
             List<Replication> replications = db.getActiveReplications();
             for (Replication replication : replications) {
                 if (!replication.isPull() && replication.isRunning() &&
@@ -521,6 +543,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 wm.putDouble(entry.getKey(), ((Double) entry.getValue()).doubleValue());
             } else if (entry.getValue() instanceof Float){
                 wm.putDouble(entry.getKey(), ((Float) entry.getValue()).doubleValue());
+            } else if (entry.getValue() instanceof Long){
+                wm.putDouble(entry.getKey(), ((Long) entry.getValue()).doubleValue());
             } else if (entry.getValue() instanceof String) {
                 wm.putString(entry.getKey(), ((String) entry.getValue()));
             } else if (entry.getValue() instanceof LinkedHashMap) {
@@ -543,8 +567,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
     private static WritableArray arrayToWritableArray(Object[] array) {
         WritableArray wa = Arguments.createArray();
         for (Object o : array) {
-            if (o instanceof LinkedHashMap) {
-                wa.pushMap(CouchBase.mapToWritableMap((LinkedHashMap) o));
+            if (o instanceof Map) {
+                wa.pushMap(CouchBase.mapToWritableMap((Map) o));
             } else if (o instanceof WritableMap) {
                 wa.pushMap((WritableMap) o);
             } else if (o instanceof String) {
@@ -555,6 +579,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 wa.pushDouble(((Double) o).doubleValue());
             } else if (o instanceof Float) {
                 wa.pushDouble(((Float) o).doubleValue());
+            } else if (o instanceof Long) {
+                wa.pushDouble(((Long) o).doubleValue());
             } else if (o instanceof Integer) {
                 wa.pushInt(((Integer) o).intValue());
             } else if (o instanceof WritableArray) {
@@ -570,6 +596,43 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Creates a database.
+     * @param database  String  Database name.
+     * @param promise   Promise Promise to be returned to the JavaScript engine.
+     */
+    @ReactMethod
+    public void createDatabase(String database, Promise promise) {
+        try {
+            Manager ss = this.managerServer;
+            Database db = ss.getDatabase(database);
+            promise.resolve(null);
+        } catch (CouchbaseLiteException e) {
+            promise.reject("COUCHBASE_ERROR", e);
+        } catch (Exception e) {
+            promise.reject("NOT_OPENED", e);
+        }
+    }
+
+    /**
+     * Destroys a database.
+     * @param database  String  Database name.
+     * @param promise   Promise Promise to be returned to the JavaScript engine.
+     */
+    @ReactMethod
+    public void destroyDatabase(String database, Promise promise) {
+        Manager ss = this.managerServer;
+        try {
+            Database db = ss.getExistingDatabase(database);
+            db.delete();
+            promise.resolve(null);
+        } catch (CouchbaseLiteException e) {
+            promise.reject("COUCHBASE_ERROR", e);
+        } catch (Exception e) {
+            promise.reject("NOT_OPENED", e);
+        }
+    }
+
+    /**
      * Gets an existing document from the database.
      * @param database  String  Database name.
      * @param docId     String  Document id.
@@ -577,11 +640,10 @@ public class CouchBase extends ReactContextBaseJavaModule {
      */
     @ReactMethod
     public void getDocument(String database, String docId, Promise promise) {
-        Manager ss = null;
+        Manager ss = this.managerServer;
         Database db = null;
         try {
-            ss = this.startCBLite();
-            db = ss.getDatabase(database);
+            db = ss.getExistingDatabase(database);
             Map<String, Object> properties = null;
 
             Pattern pattern = Pattern.compile("^_local/(.+)");
@@ -594,8 +656,17 @@ public class CouchBase extends ReactContextBaseJavaModule {
             } else {
                 Document doc = db.getExistingDocument(docId);
                 if (doc != null) {
-                    properties = doc.getProperties();
+                    for (SavedRevision actual : doc.getConflictingRevisions()) {
+                        if (actual.arePropertiesAvailable()) {
+                            properties = actual.getProperties();
+                            break;
+                        }
+                    }
+                    if (properties == null) {
+                        properties = doc.getCurrentRevision().getProperties();
+                    }
                 }
+                
             }
 
             if (properties != null) {
@@ -604,13 +675,10 @@ public class CouchBase extends ReactContextBaseJavaModule {
             } else {
                 promise.resolve(Arguments.createMap());
             }
-        } catch (IOException e) {
-            promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {
             promise.reject("COUCHBASE_ERROR", e);
-        } finally {
-            if (db != null) db.close();
-            if (ss != null) ss.close();
+        } catch (Exception e) {
+            promise.reject("NOT_OPENED", e);
         }
     }
 
@@ -622,11 +690,10 @@ public class CouchBase extends ReactContextBaseJavaModule {
      */
     @ReactMethod
     public void getAllDocuments(String database, ReadableArray docIds, Promise promise) {
-        Manager ss = null;
+        Manager ss = this.managerServer;
         Database db = null;
         try {
-            ss = this.startCBLite();
-            db = ss.getDatabase(database);
+            db = ss.getExistingDatabase(database);
             WritableArray results = Arguments.createArray();
 
             if (docIds == null || docIds.size() == 0) {
@@ -680,13 +747,10 @@ public class CouchBase extends ReactContextBaseJavaModule {
             ret.putArray("rows", results);
             ret.putInt("total_rows", results.size());
             promise.resolve(ret);
-        } catch (IOException e) {
-            promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {
             promise.reject("COUCHBASE_ERROR", e);
-        } finally {
-            if (db != null) db.close();
-            if (ss != null) ss.close();
+        } catch (Exception e) {
+            promise.reject("NOT_OPENED", e);
         }
     }
 
@@ -697,57 +761,64 @@ public class CouchBase extends ReactContextBaseJavaModule {
      * @param viewName String Name of the view to be queried.
      * @param params ReadableMap JavaScript object containing the extra parameters to pass to the view.
      * @param docIds ReadableArray JavaScript array containing the keys.
+     * @param forceRebuild Force the rebuild of the view before querying it.
      * @param promise Promise Promise to be returned to the JavaScript engine.
      */
     @ReactMethod
     public void getView(String database, String design, String viewName, ReadableMap params, ReadableArray docIds, Promise promise) {
-        Manager ss = null;
+        Manager ss = managerServer;
         Database db = null;
+        View view = null;
         try {
-            ss = this.startCBLite();
-            db = ss.getDatabase(database);
+            db = ss.getExistingDatabase(database);
 
-            Document viewDoc = db.getExistingDocument("_design/" + design);
+            view = db.getExistingView(viewName);
 
-            if (viewDoc == null) {
-                promise.reject("NOT_FOUND", "The document _design/" + design + " could not be found.");
-                return;
-            }
+            if (view == null || (view != null && view.getMap() == null)) {
+                Document viewDoc = db.getExistingDocument("_design/" + design);
 
-            Map<String, Object> views = null;
-            try {
-                views = (Map<String, Object>) viewDoc.getProperty("views");
-            } catch (Exception e) {
-                promise.reject("NOT_FOUND", "The views could not be retrieved.", e);
-                return;
-            }
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> viewDefinition = (Map<String, Object>) views.get(viewName);
-
-            if (viewDefinition == null) {
-                promise.reject("NOT_FOUND", "The view " + viewName + " could not be found.");
-                return;
-            }
-
-            Mapper mapper = View.getCompiler().compileMap((String) viewDefinition.get("map"), "javascript");
-            String version = (String)viewDefinition.get("version");
-            if (mapper == null) {
-                promise.reject("COMPILE_ERROR", "The map function of " + viewName + "could not be compiled.");
-                return;
-            }
-
-            View view = db.getView(viewName);
-
-            if (viewDefinition.containsKey("reduce")) {
-                Reducer reducer = View.getCompiler().compileReduce((String) viewDefinition.get("reduce"), "javascript");
-                if (reducer == null) {
-                    promise.reject("COMPILE_ERROR", "The reduce function of " + viewName + "could not be compiled.");
+                if (viewDoc == null) {
+                    promise.reject("NOT_FOUND", "The document _design/" + design + " could not be found.");
                     return;
                 }
-                view.setMapReduce(mapper, reducer, version != null ? version : "1");
+
+                Map<String, Object> views = null;
+                try {
+                    views = (Map<String, Object>) viewDoc.getProperty("views");
+                } catch (Exception e) {
+                    promise.reject("NOT_FOUND", "The views could not be retrieved.", e);
+                    return;
+                }
+
+                @SuppressWarnings("unchecked")
+                Map<String, Object> viewDefinition = (Map<String, Object>) views.get(viewName);
+
+                if (viewDefinition == null) {
+                    promise.reject("NOT_FOUND", "The view " + viewName + " could not be found.");
+                    return;
+                }
+
+                Mapper mapper = View.getCompiler().compileMap((String) viewDefinition.get("map"), "javascript");
+                String version = (String)viewDefinition.get("version");
+                if (mapper == null) {
+                    promise.reject("COMPILE_ERROR", "The map function of " + viewName + "could not be compiled.");
+                    return;
+                }
+
+            
+                view = db.getView(viewName);
+                if (viewDefinition.containsKey("reduce")) {
+                    Reducer reducer = View.getCompiler().compileReduce((String) viewDefinition.get("reduce"), "javascript");
+                    if (reducer == null) {
+                        promise.reject("COMPILE_ERROR", "The reduce function of " + viewName + "could not be compiled.");
+                        return;
+                    }
+                    view.setMapReduce(mapper, reducer, version != null ? version : "1.1");
+                } else {
+                    view.setMap(mapper, version != null ? version : "1.1");
+                }
             } else {
-                view.setMap(mapper, version != null ? version : "1");
+                view.updateIndex();
             }
 
             Query query = view.createQuery();
@@ -803,9 +874,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 QueryRow row = it.getRow(i);
 
                 WritableMap m = Arguments.createMap();
-                m.putString("key", String.valueOf(row.getKey()));
+                m.putString("key", row.getKey() != null ? String.valueOf(row.getKey()) : null);
                 m.putMap("value", CouchBase.mapToWritableMap((Map<String,Object>)row.getValue()));
-
                 results.pushMap(m);
             }
 
@@ -817,13 +887,50 @@ public class CouchBase extends ReactContextBaseJavaModule {
                 ret.putInt("update_seq", Long.valueOf(it.getSequenceNumber()).intValue());
             }
             promise.resolve(ret);
-        } catch (IOException e) {
-            promise.reject("NOT_OPENED", e);
         } catch (CouchbaseLiteException e) {
             promise.reject("COUCHBASE_ERROR", e);
-        } finally {
-            if (db != null) db.close();
-            if (ss != null) ss.close();
+            if (view != null) view.delete();
+        } catch (Exception e) {
+            promise.reject("NOT_OPENED", e);
+            if (view != null) view.delete();
+        }
+    }
+
+    /**
+     * Puts a document in the database.
+     * @param database  String  Database name.
+     * @param docId     String  Document id.
+     * @param document  Object  Document params.
+     * @param promise   Promise Promise to be returned to the JavaScript engine.
+     */
+    @ReactMethod
+    public void putDocument(String database, String docId, ReadableMap document, Promise promise) {
+        Manager ss = this.managerServer;
+        Database db = null;
+        try {
+            db = ss.getExistingDatabase(database);
+            Map<String, Object> properties = ((ReadableNativeMap) document).toHashMap();
+
+            Pattern pattern = Pattern.compile("^_local/(.+)");
+            Matcher matcher = pattern.matcher(docId);
+            // If it matches, it is a local document.
+            if (matcher.find()) {
+                String localDocId = matcher.group(1);
+                db.putLocalDocument(localDocId, properties);
+                promise.resolve(null);
+            } else {
+                Document doc = db.getDocument(docId);
+                if (doc != null) {
+                    doc.putProperties(properties);
+                    promise.resolve(null);
+                } else {
+                    promise.reject("MISSING_DOCUMENT", "Could not create/update document");
+                }
+            }
+        } catch (CouchbaseLiteException e) {
+            promise.reject("COUCHBASE_ERROR", e);
+        } catch (Exception e) {
+            promise.reject("NOT_OPENED", e);
         }
     }
 }
