@@ -656,15 +656,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
             } else {
                 Document doc = db.getExistingDocument(docId);
                 if (doc != null) {
-                    for (SavedRevision actual : doc.getConflictingRevisions()) {
-                        if (actual.arePropertiesAvailable()) {
-                            properties = actual.getProperties();
-                            break;
-                        }
-                    }
-                    if (properties == null) {
-                        properties = doc.getCurrentRevision().getProperties();
-                    }
+                    properties = doc.getCurrentRevision().getProperties();
                 }
                 
             }
