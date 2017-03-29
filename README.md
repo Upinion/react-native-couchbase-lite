@@ -13,9 +13,11 @@ git clone the directory to [node_modules/react-native-couchbase]
 ```
 
 ## Guide
-[Initialise](https://github.com/Upinion/react-native-couchbase-lite/blob/master/README_Initialise.md)
-[Functions](https://github.com/Upinion/react-native-couchbase-lite/blob/master/README_Functions.md)
-[Events](https://github.com/Upinion/react-native-couchbase-lite/blob/master/README_Constants.md)
+* [Initialising](https://github.com/Upinion/react-native-couchbase-lite/blob/master/README_Initialise.md): How to start couchbase.
+
+* [Functions](https://github.com/Upinion/react-native-couchbase-lite/blob/master/README_Functions.md): Available functions to interact with couchbase.
+
+* [Events](https://github.com/Upinion/react-native-couchbase-lite/blob/master/README_Constants.md): All the different events emitted.
 
 ## Setup
 
