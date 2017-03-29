@@ -1,63 +1,4 @@
 {
-  "_args": [
-    [
-      "react-native-couchbase@*",
-      "/Users/juldiadia/Work/mobapp"
-    ],
-    [
-      "react-native-couchbase@*",
-      "/Users/juldiadia/Work/mobapp"
-    ],
-    [
-      "react-native-couchbase@^1.1.6",
-      "/Users/juldiadia/Work/mobapp"
-    ],
-    [
-      {
-        "raw": "react-native-couchbase@^1.3.4",
-        "scope": null,
-        "escapedName": "react-native-couchbase",
-        "name": "react-native-couchbase",
-        "rawSpec": "^1.3.4",
-        "spec": ">=1.3.4 <2.0.0",
-        "type": "range"
-      },
-      "/Users/albertommr/Documents/upinion/mobapp"
-    ]
-  ],
-  "_from": "react-native-couchbase@^1.3.4",
-  "_id": "react-native-couchbase@1.3.4",
-  "_inCache": true,
-  "_installable": true,
-  "_location": "/react-native-couchbase",
-  "_nodeVersion": "6.3.1",
-  "_npmOperationalInternal": {
-    "host": "packages-18-east.internal.npmjs.com",
-    "tmp": "tmp/react-native-couchbase-1.3.4.tgz_1480087934472_0.32343303482048213"
-  },
-  "_npmUser": {
-    "name": "juldiadia",
-    "email": "julian.diaz@upinion.com"
-  },
-  "_npmVersion": "3.10.6",
-  "_phantomChildren": {},
-  "_requested": {
-    "raw": "react-native-couchbase@^1.3.4",
-    "scope": null,
-    "escapedName": "react-native-couchbase",
-    "name": "react-native-couchbase",
-    "rawSpec": "^1.3.4",
-    "spec": ">=1.3.4 <2.0.0",
-    "type": "range"
-  },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/react-native-couchbase/-/react-native-couchbase-1.3.4.tgz",
-  "_shasum": "474f6c1100b2955bbac5be56222d6297d9f30787",
-  "_shrinkwrap": null,
-  "_spec": "react-native-couchbase@^1.3.4",
-  "_where": "/Users/albertommr/Documents/upinion/mobapp",
   "author": {
     "name": "JDiaz",
     "email": "julian.diaz@upinion.com"
@@ -101,13 +42,10 @@
   "peerDependencies": {
     "react-native": ">=0.11"
   },
-  "readme": "ERROR: No README data found!",
+  "readme": "https://github.com/Upinion/react-native-couchbase-lite/blob/master/README.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Upinion/react-native-couchbase-lite.git"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "version": "1.4.4"
+  "version": "1.4.5"
 }
