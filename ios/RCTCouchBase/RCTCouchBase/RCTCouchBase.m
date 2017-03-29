@@ -323,7 +323,7 @@ RCT_EXPORT_METHOD(createDatabase: (NSString*) databaseName
         NSError* err;
         CBLDatabase* database = [manager databaseNamed:databaseName error:&err];
         if (!database) {
-            reject(@"not_opened", @"The database could not be created", err);
+            reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be created", databaseName], err);
             return;
         } else {
             [databases setObject:database forKey:databaseName];
@@ -338,7 +338,7 @@ RCT_EXPORT_METHOD(destroyDatabase: (NSString*) databaseName
 {
     __block NSError* err;
     if (![manager databaseExistsNamed:databaseName]) {
-        reject(@"not_opened", @"The database could not be opened", nil);
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be opened", databaseName], nil);
         return;
     } else {
         [databases removeObjectForKey:databaseName];
@@ -349,7 +349,7 @@ RCT_EXPORT_METHOD(destroyDatabase: (NSString*) databaseName
             CBLDatabase* database = [manager existingDatabaseNamed:databaseName error:nil];
             bool deleted = [database deleteDatabase:&err];
             if (!deleted) {
-                reject(@"not_opened", @"The database could not be destroyed", err);
+                reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be destroyed", databaseName], err);
                 return;
             } else {
                 resolve(@{});
@@ -392,7 +392,7 @@ RCT_EXPORT_METHOD(putDocument: (NSString*) db
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (![manager databaseExistsNamed: db]) {
-        reject(@"not_opened", @"The database could not be opened", nil);
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be opened", db], nil);
         return;
     }
     [manager doAsync:^(void) {
@@ -436,7 +436,7 @@ RCT_EXPORT_METHOD(getDocument: (NSString*) db
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (![manager databaseExistsNamed: db]) {
-        reject(@"not_opened", @"The database could not be opened", nil);
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be opened", db], nil);
         return;
     }
     [manager doAsync:^(void) {
@@ -477,7 +477,7 @@ RCT_EXPORT_METHOD(getAllDocuments: (NSString*) db
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (![manager databaseExistsNamed: db]) {
-        reject(@"not_opened", @"The database could not be opened", nil);
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be opened", db], nil);
         return;
     }
     [manager doAsync:^(void) {
@@ -556,7 +556,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (![manager databaseExistsNamed: db]) {
-        reject(@"not_opened", @"The database could not be opened", nil);
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be opened", db], nil);
         return;
     }
     [manager doAsync:^(void) {
@@ -569,13 +569,13 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
             
             CBLDocument* viewsDoc = [database existingDocumentWithID:[NSString stringWithFormat:@"_design/%@", design]];
             if (viewsDoc == nil || viewsDoc.properties == nil || [viewsDoc.properties objectForKey:@"views"] == nil) {
-                reject(@"not_found", @"The design file could not be found", nil);
+                reject(@"not_found", [NSString stringWithFormat:@"Database %@: design file could not be opened", db], nil);
                 return;
             }
             
             NSDictionary* views = [viewsDoc.properties objectForKey:@"views"];
             if ([views objectForKey:viewName] == nil || [[views objectForKey:viewName] objectForKey:@"map"] == nil) {
-                reject(@"not_found", @"The view was not found in the database", nil);
+                reject(@"not_found", [NSString stringWithFormat:@"Database %@: view not found", db], nil);
                 return;
             }
             
