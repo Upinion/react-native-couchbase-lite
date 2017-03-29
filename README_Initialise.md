@@ -32,7 +32,7 @@ CouchBase.serverLocalRemote(Integer listen_port, String userLocal, String passwo
 ```
 ## Not using REST API
 This does not create a HTTP Server, so you can only access couchbase through the available functions within the plugin.
-### Initilise couchbase
+### Initialise couchbase
 ```java
  /** 
  * starts a couchbase manager instance
