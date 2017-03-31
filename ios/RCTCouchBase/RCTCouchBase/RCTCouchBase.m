@@ -605,8 +605,8 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
         CBLQuery* query = [view createQuery];
         
         NSArray* paramKeys = [params allKeys];
-        if ([paramKeys containsObject:@"startkey"]) query.startKeyDocID = [params objectForKey:@"startkey"];
-        if ([paramKeys containsObject:@"endkey"]) query.endKeyDocID = [params objectForKey:@"endkey"];
+        if ([paramKeys containsObject:@"startkey"]) query.startKey = [params objectForKey:@"startkey"];
+        if ([paramKeys containsObject:@"endkey"]) query.endKey = [params objectForKey:@"endkey"];
         if ([paramKeys containsObject:@"descending"]) query.descending = [params objectForKey:@"descending"];
         if ([paramKeys containsObject:@"limit"]) query.limit = [params objectForKey:@"limit"];
         if ([paramKeys containsObject:@"skip"]) query.skip = [params objectForKey:@"skip"];
