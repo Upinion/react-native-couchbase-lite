@@ -638,14 +638,16 @@ public class CouchBase extends ReactContextBaseJavaModule {
             throw new JavascriptException("CouchBase Server bad arguments");
         try {
             Database db = ss.getExistingDatabase(databaseLocal);
-            List<Replication> replications = db.getActiveReplications();
-            for (Replication replication : replications) {
-                if (!replication.isPull() && replication.isRunning() &&
-                        replication.getStatus() == Replication.ReplicationStatus.REPLICATION_IDLE) {
-                    replication.restart();
+            if (db != null) {
+                List<Replication> replications = db.getActiveReplications();
+                for (Replication replication : replications) {
+                    if (!replication.isPull() && replication.isRunning() &&
+                            replication.getStatus() == Replication.ReplicationStatus.REPLICATION_IDLE) {
+                        replication.restart();
+                    }
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e){
             throw new JavascriptException(e.getMessage());
         }
 
