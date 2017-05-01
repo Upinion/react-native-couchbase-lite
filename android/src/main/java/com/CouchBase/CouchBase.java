@@ -414,6 +414,195 @@ public class CouchBase extends ReactContextBaseJavaModule {
     }
 
     /**
+     * Function to be shared to React-native, it adds a listener for change events in database
+     * @param  databaseLocal    String      database for local server
+     * @param  promise          Promise     Promise to be returned to the JavaScript engine.
+     */
+    @ReactMethod
+    public void databaseChangeEvents(String databaseLocal, Promise promise) {
+        Manager ss = this.managerServer;
+
+        if(ss == null)
+            throw new JavascriptException("CouchBase local server needs to be started first");
+        if(!(databaseLocal != null))
+            throw new JavascriptException("CouchBase Server bad arguments");
+
+        try {
+            Database db = ss.getExistingDatabase(databaseLocal);
+            db.addChangeListener(new Database.ChangeListener() {
+                @Override
+                public void changed(Database.ChangeEvent event) {
+                    for (DocumentChange dc : event.getChanges()) {
+                        WritableMap eventM = Arguments.createMap();
+                        eventM.putString("databaseName", event.getSource().getName());
+                        eventM.putString("id", dc.getDocumentId());
+                        sendEvent(context, DB_EVENT_KEY, eventM);
+                    }
+                }
+            });
+
+            promise.resolve(null);
+        }catch(Exception e){
+            promise.reject("NOT_OPENED", e);
+        }
+    }
+
+    /**
+     * Function to be shared to React-native, it starts already created local db pull replication from remote
+     * @param  databaseLocal    String      database for local server
+     * @param  remoteURL        String      URL to remote couchbase
+     * @param  remoteUser       String      user for remote server
+     * @param  remotePassword   String      password for remote server
+     * @param  events           Boolean     activate the events for pull
+     * @param  promise          Promise     Promise to be returned to the JavaScript engine.
+     */
+    @ReactMethod
+    public void serverRemotePull(String databaseLocal, String remoteURL, String  remoteUser,
+                                  String remotePassword, Boolean events, Promise promise) {
+
+        Manager ss = this.managerServer;
+
+        if(ss == null)
+            throw new JavascriptException("CouchBase local server needs to be started first");
+        if(!(databaseLocal != null && remoteURL != null && remoteUser != null && remotePassword != null))
+            throw new JavascriptException("CouchBase Server bad arguments");
+
+        try {
+            URL url = new URL(remoteURL);
+            Database db = ss.getExistingDatabase(databaseLocal);
+            final Replication pull = db.createPullReplication(url);
+            pull.setContinuous(true);
+
+            Authenticator basicAuthenticator = AuthenticatorFactory.createBasicAuthenticator(remoteUser, remotePassword);
+            pull.setAuthenticator(basicAuthenticator);
+
+            if (events) {
+                pull.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        boolean offline = pull.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE;
+                        if (offline) {
+                            WritableMap eventOffline = Arguments.createMap();
+                            eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, OFFLINE_KEY, eventOffline);
+                        } else {
+                            WritableMap eventOnline = Arguments.createMap();
+                            eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, ONLINE_KEY, eventOnline);
+                        }
+                        if (event.getError() != null) {
+                            Throwable lastError = event.getError();
+                            if (lastError instanceof RemoteRequestResponseException) {
+                                RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
+                                if (exception.getCode() == 401) {
+                                    // Authentication error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }else if (exception.getCode() == 404){
+                                    // Database not found error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, NOT_FOUND_KEY, eventError);
+                                }
+                            }
+                        } else {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                            eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
+                            sendEvent(context, PULL_EVENT_KEY, eventM);
+                        }
+                    }
+                });
+            }
+
+            pull.start();
+
+            promise.resolve(null);
+        }catch(Exception e){
+            promise.reject("NOT_OPENED", e);
+        }
+    }
+
+    /**
+     * Function to be shared to React-native, it starts already created local db push replication to remote
+     * @param  databaseLocal    String      database for local server
+     * @param  remoteURL        String      URL to remote couchbase
+     * @param  remoteUser       String      user for remote server
+     * @param  remotePassword   String      password for remote server
+     * @param  events           Boolean     activate the events for push
+     * @param  promise          Promise     Promise to be returned to the JavaScript engine.
+     */
+    @ReactMethod
+    public void serverRemotePush(String databaseLocal, String remoteURL, String  remoteUser,
+                                  String remotePassword, Boolean events, Promise promise) {
+
+        Manager ss = this.managerServer;
+
+        if(ss == null)
+            throw new JavascriptException("CouchBase local server needs to be started first");
+        if(!(databaseLocal != null && remoteURL != null && remoteUser != null && remotePassword != null))
+            throw new JavascriptException("CouchBase Server bad arguments");
+
+        try {
+            URL url = new URL(remoteURL);
+            Database db = ss.getExistingDatabase(databaseLocal);
+            final Replication push = db.createPushReplication(url);
+            push.setContinuous(true);
+
+            Authenticator basicAuthenticator = AuthenticatorFactory.createBasicAuthenticator(remoteUser, remotePassword);
+            push.setAuthenticator(basicAuthenticator);
+
+            if (events) {
+                push.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        boolean offline = push.getStatus() == Replication.ReplicationStatus.REPLICATION_OFFLINE;
+                        if (offline) {
+                            WritableMap eventOffline = Arguments.createMap();
+                            eventOffline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, OFFLINE_KEY, eventOffline);
+                        } else {
+                            WritableMap eventOnline = Arguments.createMap();
+                            eventOnline.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            sendEvent(context, ONLINE_KEY, eventOnline);
+                        }
+                        if (event.getError() != null) {
+                            Throwable lastError = event.getError();
+                            if (lastError instanceof RemoteRequestResponseException) {
+                                RemoteRequestResponseException exception = (RemoteRequestResponseException) lastError;
+                                if (exception.getCode() == 401) {
+                                    // Authentication error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, AUTH_ERROR_KEY, eventError);
+                                }else if (exception.getCode() == 404){
+                                    // Database not found error
+                                    WritableMap eventError = Arguments.createMap();
+                                    eventError.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                                    sendEvent(context, NOT_FOUND_KEY, eventError);
+                                }
+                            }
+                        } else {
+                            WritableMap eventM = Arguments.createMap();
+                            eventM.putString("databaseName", event.getSource().getLocalDatabase().getName());
+                            eventM.putString("changesCount", String.valueOf(event.getSource().getCompletedChangesCount()));
+                            eventM.putString("totalChanges", String.valueOf(event.getSource().getChangesCount()));
+                            sendEvent(context, PUSH_EVENT_KEY, eventM);
+                        }
+                    }
+                });
+            }
+            push.start();
+
+            promise.resolve(null);
+        }catch(Exception e){
+            promise.reject("NOT_OPENED", e);
+        }
+    }
+
+    /**
      * Function to be shared to React-native, compacts an already created local database
      * @param  databaseLocal    String      database for local server
      */

@@ -160,6 +160,96 @@ withRemotePassword: (NSString*) remotePassword
     }
 }
 
+- (void) startDatabaseChangeEvents: (NSString*) databaseLocal
+                          resolver: (RCTPromiseResolveBlock) resolve
+                          rejecter: (RCTPromiseRejectBlock) reject
+{
+    CBLDatabase* db = [manager existingDatabaseNamed:databaseLocal error:nil];
+    if (!db) {
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be found", databaseLocal], nil);
+    } else {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDatabaseEvent:) name:kCBLDatabaseChangeNotification object:nil];
+        resolve(@{});
+    }
+}
+
+- (void) startPush: (NSString*) databaseLocal
+     withRemoteUrl: (NSString*) remoteUrl
+    withRemoteUser: (NSString*) remoteUser
+withRemotePassword: (NSString*) remotePassword
+        withEvents: (BOOL) events
+          resolver: (RCTPromiseResolveBlock) resolve
+          rejecter: (RCTPromiseRejectBlock) reject
+{
+    CBLDatabase* db = [manager existingDatabaseNamed:databaseLocal error:nil];
+    if (!db) {
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be found", databaseLocal], nil);
+    } else {
+        // Establish the connection.
+        NSURL *url = [NSURL URLWithString:remoteUrl];
+        id<CBLAuthenticator> auth = [CBLAuthenticator
+                                     basicAuthenticatorWithName:remoteUser
+                                     password:remotePassword];
+        CBLReplication* push = [db createPushReplication: url];
+        push.continuous = YES;
+        push.authenticator = auth;
+        
+        if (timeout > 0) {
+            push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
+                                                                             @"poll": [NSNumber numberWithInteger:timeout],
+                                                                             @"websocket": @false
+                                                                             }];
+        }
+        [pushes setObject:push forKey:databaseLocal];
+        // Add the events handler.
+        if (events) {
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:push];
+        }
+        
+        [push start];
+    }
+    // Callback handler
+    resolve(@{});
+}
+
+- (void) startPull: (NSString*) databaseLocal
+     withRemoteUrl: (NSString*) remoteUrl
+    withRemoteUser: (NSString*) remoteUser
+withRemotePassword: (NSString*) remotePassword
+        withEvents: (BOOL) events
+          resolver: (RCTPromiseResolveBlock) resolve
+          rejecter: (RCTPromiseRejectBlock) reject
+{
+    CBLDatabase* db = [manager existingDatabaseNamed:databaseLocal error:nil];
+    if (!db) {
+        reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be found", databaseLocal], nil);
+    } else {
+        // Establish the connection.
+        NSURL *url = [NSURL URLWithString:remoteUrl];
+        id<CBLAuthenticator> auth = [CBLAuthenticator
+                                     basicAuthenticatorWithName:remoteUser
+                                     password:remotePassword];
+        CBLReplication* pull = [db createPullReplication: url];
+        pull.continuous = YES;
+        pull.authenticator = auth;
+        
+        if (timeout > 0) {
+            pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
+                                                                             @"poll": [NSNumber numberWithInteger:timeout],
+                                                                             @"websocket": @false
+                                                                             }];
+        }
+        [pulls  setObject:pull forKey:databaseLocal];
+        // Add the events handler.
+        if (events) {
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleReplicationEvent:) name:kCBLReplicationChangeNotification object:pull];
+        }
+        
+        [pull start];
+    }
+    resolve(@{});
+}
+
 - (void) handleDatabaseEvent: (NSNotification*) notification
 {
     CBLDatabase* database = notification.object;
@@ -264,11 +354,11 @@ RCT_EXPORT_METHOD(serverLocalRemote: (int) listenPort
         }
         // Init sync.
         [self startSync:databaseLocal
-              withRemoteUrl:remoteUrl
-             withRemoteUser:remoteUser
-         withRemotePassword:remotePassword
-                 withEvents:events
-               withCallback:nil];
+          withRemoteUrl:remoteUrl
+         withRemoteUser:remoteUser
+     withRemotePassword:remotePassword
+             withEvents:events
+           withCallback:nil];
     }];
 }
 
@@ -290,6 +380,58 @@ RCT_EXPORT_METHOD(serverRemote: (NSString*) databaseLocal
          withRemotePassword:remotePassword
                  withEvents:events
                withCallback:onEnd];
+    }];
+}
+
+RCT_EXPORT_METHOD(databaseChangeEvents: (NSString*) databaseLocal
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject)
+{
+    [manager doAsync:^(void) {
+        // Init sync.
+        [self databaseChangeEvents:databaseLocal
+                          resolver:resolve
+                          rejecter:reject];
+    }];
+}
+
+RCT_EXPORT_METHOD(serverRemotePush: (NSString*) databaseLocal
+                  withRemoteUrl: (NSString*) remoteUrl
+                  withRemoteUser: (NSString*) remoteUser
+                  withRemotePassword: (NSString*) remotePassword
+                  withEvents: (BOOL) events
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject)
+{
+    [manager doAsync:^(void) {
+        // Init sync.
+        [self startPush:databaseLocal
+          withRemoteUrl:remoteUrl
+         withRemoteUser:remoteUser
+     withRemotePassword:remotePassword
+             withEvents:events
+               resolver:resolve
+               rejecter:reject];
+    }];
+}
+
+RCT_EXPORT_METHOD(serverRemotePull: (NSString*) databaseLocal
+                  withRemoteUrl: (NSString*) remoteUrl
+                  withRemoteUser: (NSString*) remoteUser
+                  withRemotePassword: (NSString*) remotePassword
+                  withEvents: (BOOL) events
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject)
+{
+    [manager doAsync:^(void) {
+        // Init sync.
+        [self startPull:databaseLocal
+          withRemoteUrl:remoteUrl
+         withRemoteUser:remoteUser
+     withRemotePassword:remotePassword
+             withEvents:events
+               resolver:resolve
+               rejecter:reject];
     }];
 }
 
