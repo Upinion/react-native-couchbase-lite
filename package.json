@@ -40,12 +40,12 @@
   "name": "react-native-couchbase",
   "optionalDependencies": {},
   "peerDependencies": {
-    "react-native": ">=0.11"
+    "react-native": ">=0.15"
   },
   "readme": "https://github.com/Upinion/react-native-couchbase-lite/blob/master/README.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Upinion/react-native-couchbase-lite.git"
   },
-  "version": "1.4.6"
+  "version": "1.5.0"
 }
