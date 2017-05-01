@@ -44,6 +44,7 @@ CouchBase.serverManager(Callback onEnd)
 ## Syncing remote
 
 ### Syncs already created local database with remote
+If `events = true` will generate events for push / pull / change database.
 ```java
 /**
  * starts syncing between, already created, local db and remote
@@ -56,4 +57,47 @@ CouchBase.serverManager(Callback onEnd)
  */
 CouchBase.serverRemote(String databaseLocal, String remoteURL, String  remoteUser,
                             String remotePassword, Boolean events, Callback onEnd) {
+```
+
+### Adds listener for change database events.
+It will generate change database events.
+```java
+/**
+ * Function to be shared to React-native, it adds a listener for change events in database
+ * @param  databaseLocal    String      database for local server
+ * @param  promise          Promise     Promise to be returned to the JavaScript engine.
+ */
+CouchBase.databaseChangeEvents(String databaseLocal, Promise promise) {
+```
+
+### Starts already created local db pull replication from remote.
+It will generate pull events.
+```java
+/**
+ * Function to be shared to React-native, it starts already created local db pull replication from remote
+ * @param  databaseLocal    String      database for local server
+ * @param  remoteURL        String      URL to remote couchbase
+ * @param  remoteUser       String      user for remote server
+ * @param  remotePassword   String      password for remote server
+ * @param  events           Boolean     activate the events for pull
+ * @param  promise          Promise     Promise to be returned to the JavaScript engine.
+ */
+CouchBase.serverRemotePull(String databaseLocal, String remoteURL, String  remoteUser,
+                                  String remotePassword, Boolean events, Promise promise) {
+```
+
+### Starts already created local db push replication to remote.
+It will generate push events.
+```java
+/**
+ * Function to be shared to React-native, it starts already created local db push replication to remote
+ * @param  databaseLocal    String      database for local server
+ * @param  remoteURL        String      URL to remote couchbase
+ * @param  remoteUser       String      user for remote server
+ * @param  remotePassword   String      password for remote server
+ * @param  events           Boolean     activate the events for push
+ * @param  promise          Promise     Promise to be returned to the JavaScript engine.
+ */
+CouchBase.serverRemotePull(String databaseLocal, String remoteURL, String  remoteUser,
+                                  String remotePassword, Boolean events, Promise promise) {
 ```
