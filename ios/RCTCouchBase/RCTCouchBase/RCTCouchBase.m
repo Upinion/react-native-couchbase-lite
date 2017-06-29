@@ -10,8 +10,6 @@
 
 @implementation RCTCouchBase
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE(CouchBase)
 
 NSString* const PUSH = @"couchBasePushEvent";
@@ -21,6 +19,17 @@ NSString* const AUTH_ERROR = @"couchbBaseAuthError";
 NSString* const NOT_FOUND = @"couchBaseNotFound";
 NSString* const OFFLINE_KEY = @"couchBaseOffline";
 NSString* const ONLINE_KEY = @"couchBaseOnline";
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[@"couchBasePushEvent",
+             @"couchBasePullEvent",
+             @"couchBaseDBEvent",
+             @"couchbBaseAuthError",
+             @"couchBaseNotFound",
+             @"couchBaseOffline",
+             @"couchBaseOnline"
+             ];
+}
 
 - (id)init
 {
@@ -131,15 +140,15 @@ withRemotePassword: (NSString*) remotePassword
         pull.authenticator = auth;
         
         if (timeout > 0) {
-            push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
-                                                                             @"poll": [NSNumber numberWithInteger:timeout],
-                                                                             @"websocket": @false
-                                                                             }];
+            push.customProperties = @{
+                                      @"poll": [NSNumber numberWithInteger:timeout],
+                                      @"websocket": @false
+                                      };
             
-            pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
-                                                                             @"poll": [NSNumber numberWithInteger:timeout],
-                                                                             @"websocket": @false
-                                                                             }];
+            pull.customProperties = @{
+                                      @"poll": [NSNumber numberWithInteger:timeout],
+                                      @"websocket": @false
+                                      };
         }
         [pushes setObject:push forKey:databaseLocal];
         [pulls  setObject:pull forKey:databaseLocal];
@@ -195,10 +204,10 @@ withRemotePassword: (NSString*) remotePassword
         push.authenticator = auth;
         
         if (timeout > 0) {
-            push.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
-                                                                             @"poll": [NSNumber numberWithInteger:timeout],
-                                                                             @"websocket": @false
-                                                                             }];
+            push.customProperties = @{
+                                      @"poll": [NSNumber numberWithInteger:timeout],
+                                      @"websocket": @false
+                                      };
         }
         [pushes setObject:push forKey:databaseLocal];
         // Add the events handler.
@@ -234,10 +243,10 @@ withRemotePassword: (NSString*) remotePassword
         pull.authenticator = auth;
         
         if (timeout > 0) {
-            pull.customProperties = [CBLJSONDict dictionaryWithDictionary: @{
-                                                                             @"poll": [NSNumber numberWithInteger:timeout],
-                                                                             @"websocket": @false
-                                                                             }];
+            pull.customProperties = @{
+                                      @"poll": [NSNumber numberWithInteger:timeout],
+                                      @"websocket": @false
+                                      };
         }
         [pulls  setObject:pull forKey:databaseLocal];
         // Add the events handler.
@@ -260,7 +269,7 @@ withRemotePassword: (NSString*) remotePassword
                               @"databaseName": database.name,
                               @"id": change.documentID
                               };
-        [self.bridge.eventDispatcher sendAppEventWithName:DB_CHANGED body:map];
+        [self sendEventWithName:DB_CHANGED body:map];
     }
 }
 
@@ -272,12 +281,12 @@ withRemotePassword: (NSString*) remotePassword
         NSDictionary* mapError = @{
                                    @"databaseName": repl.localDatabase.name,
                                    };
-        [self.bridge.eventDispatcher sendAppEventWithName:OFFLINE_KEY body:mapError];
+        [self sendEventWithName:OFFLINE_KEY body:mapError];
     } else {
         NSDictionary* mapSuccess = @{
                                    @"databaseName": repl.localDatabase.name,
                                    };
-        [self.bridge.eventDispatcher sendAppEventWithName:ONLINE_KEY body:mapSuccess];
+        [self sendEventWithName:ONLINE_KEY body:mapSuccess];
     }
     if (repl.status == kCBLReplicationActive ||
         (repl.completedChangesCount > 0 && repl.completedChangesCount == repl.changesCount))
@@ -287,19 +296,19 @@ withRemotePassword: (NSString*) remotePassword
                               @"changesCount": [NSString stringWithFormat:@"%u", repl.completedChangesCount],
                               @"totalChanges": [NSString stringWithFormat:@"%u", repl.changesCount]
                               };
-        [self.bridge.eventDispatcher sendAppEventWithName:nameEvent body:map];
+        [self sendEventWithName:nameEvent body:map];
     }
     NSError *error = repl.lastError;
     if (error != nil && error.code == 401) {
         NSDictionary* mapError = @{
                                    @"databaseName": repl.localDatabase.name,
                                    };
-        [self.bridge.eventDispatcher sendAppEventWithName:AUTH_ERROR body:mapError];
+        [self sendEventWithName:AUTH_ERROR body:mapError];
     } else if (error != nil && error.code == 404) {
         NSDictionary* mapError = @{
                                    @"databaseName": repl.localDatabase.name,
                                    };
-        [self.bridge.eventDispatcher sendAppEventWithName:NOT_FOUND body:mapError];
+        [self sendEventWithName:NOT_FOUND body:mapError];
     }
 }
 
@@ -310,7 +319,7 @@ RCT_EXPORT_METHOD(serverManager: (RCTResponseSenderBlock) onEnd)
     }
     // Callback handler
     if (onEnd != nil) {
-        onEnd(@{});
+        onEnd(@[]);
     }
 }
 
@@ -389,7 +398,7 @@ RCT_EXPORT_METHOD(databaseChangeEvents: (NSString*) databaseLocal
 {
     [manager doAsync:^(void) {
         // Init sync.
-        [self databaseChangeEvents:databaseLocal
+        [self startDatabaseChangeEvents:databaseLocal
                           resolver:resolve
                           rejecter:reject];
     }];
@@ -437,7 +446,6 @@ RCT_EXPORT_METHOD(serverRemotePull: (NSString*) databaseLocal
 
 RCT_EXPORT_METHOD(compact: (NSString*) databaseLocal)
 {
-    NSError* err;
     if (![manager databaseExistsNamed: databaseLocal]) {
         NSLog(@"Database %@: could not be found", databaseLocal);
     } else {
@@ -466,7 +474,6 @@ RCT_EXPORT_METHOD(createDatabase: (NSString*) databaseName
         CBLDatabase* database = [manager databaseNamed:databaseName error:&err];
         if (!database) {
             reject(@"not_opened", [NSString stringWithFormat:@"Database %@: could not be created", databaseName], err);
-            return;
         } else {
             [databases setObject:database forKey:databaseName];
             resolve(@{});
@@ -726,14 +733,14 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
             NSString* version = [viewDefinition objectForKey:@"version"];
             
             if (mapBlock == nil) {
-                reject(@"invalid_map", @"Invalid map function", [NSNull null]);
+                reject(@"invalid_map", @"Invalid map function", nil);
                 return;
             }
             
             if([viewDefinition objectForKey:@"reduce"] != nil) {
                 CBLReduceBlock reduceBlock = [[CBLView compiler]compileReduceFunction:[viewDefinition objectForKey:@"reduce"] language:@"javascript"];
                 if (reduceBlock == nil) {
-                    reject(@"invalid_reduce", @"Invalid reduce function", [NSNull null]);
+                    reject(@"invalid_reduce", @"Invalid reduce function", nil);
                     return;
                 }
                 [view setMapBlock:mapBlock reduceBlock:reduceBlock version: version != nil ? [NSString stringWithString: version] : @"1.1"];
@@ -777,7 +784,7 @@ RCT_EXPORT_METHOD(getView: (NSString*) db
             }
         }
 
-        if ([paramKeys containsObject:@"update_seq"] && [params objectForKey:@"update_seq"] == @YES) {
+        if ([paramKeys containsObject:@"update_seq"] && [[params objectForKey:@"update_seq"]  isEqual: @YES]) {
             resolve(@{@"rows": results,
                       @"offset": [NSNumber numberWithUnsignedInteger: query.skip ? query.skip : 0],
                       @"total_rows": [NSNumber numberWithLongLong: view.totalRows],
