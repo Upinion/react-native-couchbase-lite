@@ -75,7 +75,7 @@
 
 ## Useful Functions
 
-### Close Database and Stop Replicators (ONLY iOS)
+### Close Database and Stop Replicators
 ### Useful if you want to stop replicators (needed for destroying database through REST API)
 ```java
  /**

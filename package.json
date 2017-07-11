@@ -43,5 +43,5 @@
     "url": "git+https://github.com/Upinion/react-native-couchbase-lite.git"
   },
   "scripts": {},
-  "version": "1.6.0"
+  "version": "1.6.1"
 }
