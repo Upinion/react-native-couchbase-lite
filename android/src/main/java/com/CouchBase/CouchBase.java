@@ -702,7 +702,8 @@ public class CouchBase extends ReactContextBaseJavaModule {
             Manager.enableLogging(Log.TAG_REMOTE_REQUEST, Log.VERBOSE);
             Manager.enableLogging(Log.TAG_ROUTER, Log.VERBOSE);
         }
-        
+
+        if (this.managerServer != null) return this.managerServer;
         return new Manager( new AndroidContext(this.context), Manager.DEFAULT_OPTIONS);
     }
 
@@ -719,8 +720,22 @@ public class CouchBase extends ReactContextBaseJavaModule {
      * Function to send: push pull events
      */
     private void sendEvent(ReactContext reactContext, String eventName, WritableMap params) {
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(eventName, params);
+        if (reactContext.hasActiveCatalystInstance()) {
+            reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(eventName, params);
+        } else if(params.getString("databaseName") != null){
+            // stop all the replications and close database
+            try {
+                    String database = params.getString("databaseName");
+                Database db = this.managerServer.getExistingDatabase(database);
+                if (db != null) {
+                    android.util.Log.d("React destroy", database);
+                    db.close(); 
+                }
+            } catch (CouchbaseLiteException e) {
+                android.util.Log.e(TAG, e.toString()); 
+            }
+        }
     }
 
     private static WritableMap mapToWritableMap(Map <String, Object> map) {
@@ -801,6 +816,28 @@ public class CouchBase extends ReactContextBaseJavaModule {
             promise.reject("COUCHBASE_ERROR", e);
         } catch (Exception e) {
             promise.reject("NOT_OPENED", e);
+        }
+    }
+
+    /**
+     * Function to be shared to React-native, it closes a database.
+     * @param  listen_port      Integer     port to start server
+     * @param  userLocal        String      user for local server
+     * @param  passwordLocal    String      password for local server
+     * @param  databaseLocal    String      database for local server
+     * @param  onEnd            Callback    function to call when finish
+     */
+    @ReactMethod
+    public void closeDatabase(String database, Callback onEnd) {
+        try {
+            Manager ss = this.managerServer;
+            Database db = ss.getExistingDatabase(database);
+            if (db != null) db.close();
+
+            if(onEnd != null)
+                onEnd.invoke();
+        } catch (Exception e) {
+            throw new JavascriptException(e.getMessage());
         }
     }
 
