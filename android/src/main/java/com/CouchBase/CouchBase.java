@@ -851,7 +851,7 @@ public class CouchBase extends ReactContextBaseJavaModule {
         Manager ss = this.managerServer;
         try {
             Database db = ss.getExistingDatabase(database);
-            db.delete();
+            if (db != null) db.delete();
             promise.resolve(null);
         } catch (CouchbaseLiteException e) {
             promise.reject("COUCHBASE_ERROR", e);
